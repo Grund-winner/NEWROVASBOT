@@ -601,6 +601,7 @@ function vipButtons(userId, lang) {
 
 async function showLanguageSelection(chatId, userId, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
+    console.log('[LANG] Showing language selection to', chatId, 'userId:', userId);
     await sendNew(chatId, userId, t('select_language', 'fr'), langButtons());
 }
 
@@ -698,11 +699,13 @@ async function handleText(chatId, from, text) {
 async function handleUpdate(update) {
     try {
         await ensureSessionsTable();
+        console.log('[UPDATE] Received update:', JSON.stringify(update).substring(0, 200));
 
         // ─── /START ───
         if (update.message && update.message.text && update.message.text.startsWith('/start')) {
             const chatId = update.message.chat.id;
             const from = update.message.from;
+            console.log('[START] User', from.id, from.username, 'started');
             // Delete user's /start message to keep single message
             await deleteMsg(chatId, update.message.message_id);
 
@@ -749,6 +752,7 @@ async function handleUpdate(update) {
                 }
             } else {
                 // New user - show language selection FIRST
+                console.log('[START] No language set, showing language selection for', from.id);
                 await showLanguageSelection(chatId, from.id, null);
             }
             return;
