@@ -11,7 +11,7 @@ const REG_LINK = process.env.REG_LINK || 'https://one-vv343.com/casino?p=ufjv';
 const BASE_URL = process.env.BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://newrovasbot.vercel.app');
 const MIN_DEPOSIT = parseFloat(process.env.MIN_DEPOSIT) || 5;
 const PROMO = process.env.PROMO_CODE || 'ROVAS';
-const CHANNEL = process.env.CHANNEL || '@dvyswin';
+const CHANNEL = process.env.CHANNEL || '@ROVASOFFICIEL';
 const LINK_SECRET = process.env.ADMIN_PASSWORD || 'rovasadmin2024';
 
 // ─── LANGUES ───
@@ -484,7 +484,7 @@ async function createUser(tid, username, fn, ln, referredBy) {
 
 // Referral link: https://t.me/bot?start=ref123456789
 function referralLink(tid) {
-    return `https://t.me/${process.env.BOT_USERNAME || 'predvys_bot'}?start=ref${tid}`;
+    return `https://t.me/${process.env.BOT_USERNAME || 'I1wingamepredictor_bot'}?start=ref${tid}`;
 }
 
 function generateToken(telegramId) {

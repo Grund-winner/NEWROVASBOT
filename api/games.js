@@ -125,7 +125,7 @@ async function buildGameWithUserData(game, userId) {
         } catch (e) {}
 
         // Build referral link
-        var botUsername = process.env.BOT_USERNAME || 'predvys_bot';
+        var botUsername = process.env.BOT_USERNAME || 'I1wingamepredictor_bot';
         referralLink = 'https://t.me/' + botUsername + '?start=ref' + userId;
     }
 
