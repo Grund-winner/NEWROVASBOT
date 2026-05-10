@@ -370,15 +370,24 @@ T.pt = {
 // HELPERS - Un seul message a la fois
 // ═══════════════════════════════════════════════════════
 
-// ─── MEDIA MAPPING ───
+// ─── MEDIA MAPPING (file_id stored on Telegram) ───
+const MEDIA = {
+    vip:             { type: 'photo', file_id: 'AgACAgQAAxkDAAMfagABzG1EzdBgT_-K3L5i1MUUWkkRAAKzD2sb5G4JUEjo0jbkifEFAQADAgADeQADOwQ' },
+    instructions:    { type: 'photo', file_id: 'AgACAgQAAxkDAAMgagABzG4qBPJMU_zJOVJBKRkC-R5aAAK0D2sb5G4JUB6slju_dmf2AQADAgADdwADOwQ' },
+    defautmenu:      { type: 'photo', file_id: 'AgACAgQAAxkDAAMeagABzGyec9iPdkvyaMsySImsQ-LOAAKyD2sb5G4JUP4WqEnvJLrqAQADAgADeQADOwQ' },
+    fr_inscription:  { type: 'video', file_id: 'BAACAgQAAxkDAAMhagABzHAAAZsFzp-4sYx3WmIgwfQKdAACNxoAAuRuCVAbslZHd_gXETsE' },
+    other_inscription:{ type: 'video', file_id: 'BAACAgQAAxkDAAMiagABzHBwDrbTwo-vWuaqL78Mi-Y5AAI4GgAC5G4JUHB-EFNV1RtoOwQ' },
+    fr_depot:        { type: 'video', file_id: 'BAACAgQAAxkDAAMjagABzHIhTv4-L-1bvBHJa6ry4NuVAAI5GgAC5G4JULTkYixGi5ipOwQ' },
+    other_depot:     { type: 'video', file_id: 'BAACAgQAAxkDAAMkagABzHMEmg_NNeAf2677A9LH01uIAAI6GgAC5G4JULSpq4igUkYCOwQ' }
+};
+
 function getMedia(mediaKey, lang) {
-    const base = `${BASE_URL}/video`;
     if (!mediaKey) return null;
-    if (mediaKey === 'vip') return { type: 'photo', url: `${base}/firstmsg.png` };
-    if (mediaKey === 'instructions') return { type: 'photo', url: `${base}/comment_ca_marche.png` };
-    if (mediaKey === 'register') return { type: 'video', url: lang === 'fr' ? `${base}/fr_inscription.mp4` : `${base}/other_inscription.mp4` };
-    if (mediaKey === 'deposit') return { type: 'video', url: lang === 'fr' ? `${base}/fr_depot.mp4` : `${base}/other_depot.mp4` };
-    if (mediaKey === 'default') return { type: 'photo', url: `${base}/defautmenu.png` };
+    if (mediaKey === 'vip') return MEDIA.vip;
+    if (mediaKey === 'instructions') return MEDIA.instructions;
+    if (mediaKey === 'register') return lang === 'fr' ? MEDIA.fr_inscription : MEDIA.other_inscription;
+    if (mediaKey === 'deposit') return lang === 'fr' ? MEDIA.fr_depot : MEDIA.other_depot;
+    if (mediaKey === 'default') return MEDIA.defautmenu;
     return null;
 }
 
@@ -435,13 +444,13 @@ async function sendNew(chatId, userId, text, btns, mediaKey) {
     let res;
     if (media && media.type === 'photo') {
         res = await tgAPI('sendPhoto', {
-            chat_id: chatId, photo: media.url,
+            chat_id: chatId, photo: media.file_id,
             caption: text, parse_mode: 'HTML',
             reply_markup: { inline_keyboard: btns }
         });
     } else if (media && media.type === 'video') {
         res = await tgAPI('sendVideo', {
-            chat_id: chatId, video: media.url,
+            chat_id: chatId, video: media.file_id,
             caption: text, parse_mode: 'HTML',
             reply_markup: { inline_keyboard: btns }
         });
