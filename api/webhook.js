@@ -47,324 +47,325 @@ const T = {};
 function t(key, lang) { return (T[lang] && T[lang][key]) || (T.fr && T.fr[key]) || key; }
 
 T.fr = {
-    select_language: `\uD83C\uDF10 Veuillez choisir votre langue\nPlease select your language`,
-    channel_required: `Veuillez rejoindre notre canal pour continuer.`,
-    welcome: `<b>\uD83C\uDFB0 Bienvenue sur ROVAS</b>\n\nLe meilleur bot de predictions casino.\n\n<b>\u2776.</b> Inscrivez-vous avec le code promo <b>${PROMO}</b>\n<b>\u2777.</b> Rechargez minimum ${depositStr('fr')}\n<b>\u2778.</b> Accedez aux predictions VIP`,
-    instructions: `<b>\u2753 Comment ca marche ?</b>\n\n<b>\u2776.</b> <b>Inscrivez-vous</b> sur 1Win avec le code promo <b>${PROMO}</b>\n<b>\u2777.</b> <b>Rechargez</b> minimum ${depositStr('fr')}\n<b>\u2778.</b> <b>Accedez</b> aux predictions en direct`,
-    register: `<b>\uD83D\uDCDD Inscription</b>\n\nVeuillez d'abord vous inscrire en cliquant sur le lien ci-dessous.\n\nCode promo : <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 Rechargement requis</b>\n\nVotre inscription est confirmee.\n\nEffectuez un depot minimum de ${depositStr('fr')} puis cliquez sur <b>Predictions</b>.`,
-    deposit_small: `<b>Depot insuffisant</b>\n\nDepot detecte : <b>{amount}$</b>\nMinimum requis : ${depositStr('fr')}\n\nVeuillez completer votre depot.`,
-    not_registered: `<b>Inscription non detectee</b>\n\nAssurez-vous d'utiliser le code promo <b>${PROMO}</b>.\n\nPatientez quelques minutes puis reessayez.`,
-    access_granted: `<b>\u2B50 VIP Accorde !</b>\n\nCliquez ci-dessous pour acceder aux predictions :`,
-    already_registered: `<b>\uD83D\uDC10 Verification ID</b>\n\nEnvoyez votre ID 1Win pour verification.\n\nAssurez-vous d'etre inscrit avec le code promo <b>${PROMO}</b>.`,
-    already_registered_success: `<b>\u2705 Compte lie !</b>\n\nVotre ID 1Win est associe a votre Telegram.`,
-    already_registered_already: `Cet ID est deja lie a un autre compte.`,
-    already_registered_notfound: `<b>ID non trouve</b>\n\nInscrivez-vous d'abord avec le code promo <b>${PROMO}</b>.`,
-    language_changed: `\u2705 Langue changee`,
-    register_first: `Inscrivez-vous d'abord.`,
-    btn_register: `S'inscrire`,
-    btn_instructions: `Comment ca marche ?`,
-    btn_already: `Deja inscrit`,
-    btn_predictions: `\u26A1 Predictions`,
+    select_language: `\uD83C\uDF0D Choisissez votre langue\nSelect your language`,
+    channel_required: `\uD83D\uDCAC Pour continuer, rejoignez notre canal officiel.\n\nC'est la pour rester informe des dernieres predictions et ne rien manquer.`,
+    welcome: `<b>\u2728 Bienvenue chez ROVAS\u2728</b>\n\nVotre assistant predictions de confiance pour maximiser vos gains.\n\n<b>\uD83D\uDD39</b> Creez votre compte avec le code <b>${PROMO}</b>\n<b>\uD83D\uDD39</b> Effectuez un depot de ${depositStr('fr')}\n<b>\uD83D\uDD39</b> Accedez aux predictions exclusives`,
+    instructions: `<b>\uD83D\uDCD6 Guide rapide</b>\n\nSuivez ces 3 etapes pour commencer :\n\n<b>1.</b> <b>Creez votre compte</b> sur la plateforme avec le code promo <b>${PROMO}</b>\n<b>2.</b> <b>Alimentez votre compte</b> d'un minimum de ${depositStr('fr')}\n<b>3.</b> <b>Accedez aux predictions</b> en temps reel et commencez a gagner`,
+    register: `<b>\uD83C\uDAF1 Etape 1 : Inscription</b>\n\nCliquez sur le bouton ci-dessous pour creer votre compte.\n\n\u26A0\uFE0F Utilisez obligatoirement le code promo : <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 Etape 2 : Alimentation</b>\n\nVotre inscription a ete confirmee avec succes.\n\nEffectuez un depot de ${depositStr('fr')} minimum, puis revenez cliquer sur <b>\uD83C\uDFAF Predictions</b>.`,
+    deposit_small: `<b>\u26A0\uFE0F Depot incomplet</b>\n\nMontant detecte : <b>{amount}$</b>\nMontant requis : ${depositStr('fr')}\n\nVeuillez completer votre depot pour debloquer l'acces.`,
+    not_registered: `<b>\uD83D\uDD0E Aucune inscription trouvee</b>\n\nVerifiez que vous avez bien utilise le code promo <b>${PROMO}</b> lors de votre inscription.\n\nLaissez quelques minutes puis reessayez.`,
+    access_granted: `<b>\uD83C\uDFC6 Acces VIP Debloque !</b>\n\nFeclicitations ! Vos predictions exclusives sont maintenant disponibles.`,
+    already_registered: `<b>\uD83D\uDCB0 Lier votre compte</b>\n\nEnvoyez votre ID 1Win dans le chat pour associer votre compte.\n\n\u2139\uFE0F Vous devez etre inscrit avec le code <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 Compte associe avec succes !</b>\n\nVotre ID 1Win est desormais lie a votre profil Telegram.`,
+    already_registered_already: `Cet ID est deja associe a un autre compte.`,
+    already_registered_notfound: `<b>\u274C ID introuvable</b>\n\nCreez d'abord un compte avec le code promo <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Langue mise a jour`,
+    register_first: `Veuillez d'abord vous inscrire.`,
+    btn_register: `\uD83C\uDAF1 Inscription`,
+    btn_instructions: `\uD83D\uDCD6 Guide`,
+    btn_already: `\uD83D\uDCB0 Deja inscrit`,
+    btn_predictions: `\uD83C\uDFAF Predictions`,
     btn_back: `\u2190 Retour`,
-    btn_register_now: `S'inscrire maintenant`,
-    btn_deposit: `Recharger`,
-    btn_join: `Rejoindre le canal`,
-    btn_language: `Langue`,
-    btn_channel: `Verifier`,
-    btn_change_language: `\uD83C\uDF10 Changer la langue`,
-    deposit_insufficient_no: `<b>Depot requis</b>\n\nEffectuez un depot minimum de ${depositStr('fr')} pour acceder aux predictions.`,
-    missing: `<b>Il vous manque <b>{remaining}$</b> ({local})</b>\n\nCompletez votre depot.`,
-    channel_required_alert: `Rejoignez le canal d'abord.`
+    btn_register_now: `\u27A1\uFE0F Creer mon compte`,
+    btn_deposit: `\uD83D\uDCB3 Alimenter`,
+    btn_join: `\uD83D\uDCAC Rejoindre le canal`,
+    btn_language: `\uD83C\uDF10 Langue`,
+    btn_channel: `\u2705 J'ai rejoint`,
+    btn_change_language: `\uD83C\uDF10 Modifier la langue`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 Depot necessaire</b>\n\nUn depot minimum de ${depositStr('fr')} est requis pour acceder aux predictions.`,
+    missing: `<b>\uD83D\uDCE1 Il manque <b>{remaining}$</b> ({local})</b>\n\nCompletez votre depot pour debloquer l'acces.`,
+    channel_required_alert: `Rejoignez d'abord le canal officiel.`
 };
 
 T.en = {
-    select_language: `\uD83C\uDF10 Please select your language\nVeuillez choisir votre langue`,
-    channel_required: `Please join our channel to continue.`,
-    welcome: `<b>\uD83C\uDFB0 Welcome to ROVAS</b>\n\nThe best casino prediction bot.\n\n<b>\u2776.</b> Register with promo code <b>${PROMO}</b>\n<b>\u2777.</b> Deposit minimum ${depositStr('en')}\n<b>\u2778.</b> Access VIP predictions`,
-    instructions: `<b>\u2753 How does it work?</b>\n\n<b>\u2776.</b> <b>Register</b> on 1Win with promo code <b>${PROMO}</b>\n<b>\u2777.</b> <b>Deposit</b> minimum ${depositStr('en')}\n<b>\u2778.</b> <b>Access</b> live predictions`,
-    register: `<b>\uD83D\uDCDD Registration</b>\n\nPlease register first by clicking the link below.\n\nPromo code: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 Deposit required</b>\n\nYour registration is confirmed.\n\nMake a minimum deposit of ${depositStr('en')} then click <b>Predictions</b>.`,
-    deposit_small: `<b>Insufficient deposit</b>\n\nDetected: <b>{amount}$</b>\nMinimum required: ${depositStr('en')}\n\nPlease complete your deposit.`,
-    not_registered: `<b>Registration not detected</b>\n\nMake sure to use promo code <b>${PROMO}</b>.\n\nWait a few minutes then try again.`,
-    access_granted: `<b>\u2B50 VIP Granted!</b>\n\nClick below to access predictions:`,
-    already_registered: `<b>\uD83D\uDC10 ID Verification</b>\n\nSend your 1Win ID for verification.\n\nMake sure you registered with promo code <b>${PROMO}</b>.`,
-    already_registered_success: `<b>\u2705 Account linked!</b>\n\nYour 1Win ID is now associated with your Telegram.`,
+    select_language: `\uD83C\uDF0D Select your language\nChoisissez votre langue`,
+    channel_required: `\uD83D\uDCAC Join our official channel to continue.\n\nStay updated with the latest predictions and never miss an opportunity.`,
+    welcome: `<b>\u2728 Welcome to ROVAS\u2728</b>\n\nYour trusted prediction assistant to maximize your winnings.\n\n<b>\uD83D\uDD39</b> Create your account with code <b>${PROMO}</b>\n<b>\uD83D\uDD39</b> Deposit a minimum of ${depositStr('en')}\n<b>\uD83D\uDD39</b> Access exclusive predictions`,
+    instructions: `<b>\uD83D\uDCD6 Quick Guide</b>\n\nFollow these 3 steps to get started:\n\n<b>1.</b> <b>Create your account</b> on the platform with promo code <b>${PROMO}</b>\n<b>2.</b> <b>Fund your account</b> with at least ${depositStr('en')}\n<b>3.</b> <b>Access live predictions</b> and start winning`,
+    register: `<b>\uD83C\uDAF1 Step 1: Registration</b>\n\nClick the button below to create your account.\n\n\u26A0\uFE0F You must use promo code: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 Step 2: Fund Your Account</b>\n\nYour registration has been confirmed.\n\nMake a deposit of at least ${depositStr('en')}, then come back and click <b>\uD83C\uDFAF Predictions</b>.`,
+    deposit_small: `<b>\u26A0\uFE0F Insufficient deposit</b>\n\nDetected: <b>{amount}$</b>\nRequired: ${depositStr('en')}\n\nPlease complete your deposit to unlock access.`,
+    not_registered: `<b>\uD83D\uDD0E No registration found</b>\n\nMake sure you used promo code <b>${PROMO}</b> when signing up.\n\nWait a few minutes and try again.`,
+    access_granted: `<b>\uD83C\uDFC6 VIP Access Unlocked!</b>\n\nCongratulations! Your exclusive predictions are now available.`,
+    already_registered: `<b>\uD83D\uDCB0 Link your account</b>\n\nSend your 1Win ID in the chat to link your account.\n\n\u2139\uFE0F You must be registered with code <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 Account linked successfully!</b>\n\nYour 1Win ID is now connected to your Telegram profile.`,
     already_registered_already: `This ID is already linked to another account.`,
-    already_registered_notfound: `<b>ID not found</b>\n\nPlease register first with promo code <b>${PROMO}</b>.`,
-    language_changed: `\u2705 Language changed`,
-    register_first: `Register first.`,
-    btn_register: `Register`,
-    btn_instructions: `How does it work?`,
-    btn_already: `Already registered`,
-    btn_predictions: `\u26A1 Predictions`,
+    already_registered_notfound: `<b>\u274C ID not found</b>\n\nCreate an account first with promo code <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Language updated`,
+    register_first: `Please register first.`,
+    btn_register: `\uD83C\uDAF1 Register`,
+    btn_instructions: `\uD83D\uDCD6 Guide`,
+    btn_already: `\uD83D\uDCB0 Already registered`,
+    btn_predictions: `\uD83C\uDFAF Predictions`,
     btn_back: `\u2190 Back`,
-    btn_register_now: `Register now`,
-    btn_deposit: `Deposit`,
-    btn_join: `Join channel`,
-    btn_language: `Language`,
-    btn_channel: `Verify`,
+    btn_register_now: `\u27A1\uFE0F Create account`,
+    btn_deposit: `\uD83D\uDCB3 Deposit`,
+    btn_join: `\uD83D\uDCAC Join channel`,
+    btn_language: `\uD83C\uDF10 Language`,
+    btn_channel: `\u2705 I joined`,
     btn_change_language: `\uD83C\uDF10 Change language`,
-    deposit_insufficient_no: `<b>Deposit required</b>\n\nMake a minimum deposit of ${depositStr('en')} to access predictions.`,
-    missing: `<b>You need <b>{remaining}$</b> more ({local})</b>\n\nComplete your deposit.`,
-    channel_required_alert: `Join the channel first.`
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 Deposit required</b>\n\nA minimum deposit of ${depositStr('en')} is required to access predictions.`,
+    missing: `<b>\uD83D\uDCE1 You need <b>{remaining}$</b> more ({local})</b>\n\nComplete your deposit to unlock access.`,
+    channel_required_alert: `Join the official channel first.`
 };
 
 T.hi = {
-    select_language: `\uD83C\uDF10 \u0905\u092A\u0928\u0940 \u092D\u093E\u0937\u093E \u091A\u0941\u0928\u0947\u0902\nPlease select your language`,
-    channel_required: `\u091C\u093E\u0930\u0940 \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0939\u092E\u093E\u0930\u0947 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964`,
-    welcome: `<b>\uD83C\uDFB0 ROVAS \u092E\u0947\u0902 \u0906\u092A\u0915\u093E \u0938\u094D\u0935\u093E\u0917\u0924 \u0939\u0948</b>\n\n\u0938\u092C\u0938\u0947 \u0905\u091A\u094D\u091B\u093E \u0915\u0948\u0938\u0940\u0928\u094B \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u092C\u0949\u091F\u0964\n\n<b>\u2776.</b> \u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\n<b>\u2777.</b> \u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} \u091C\u092E\u093E \u0915\u0930\u0947\u0902\n<b>\u2778.</b> VIP \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938 \u090F\u0915\u094D\u0938\u0947\u0938 \u0915\u0930\u0947\u0902`,
-    instructions: `<b>\u2753 \u092F\u0939 \u0915\u0948\u0938\u0947 \u0915\u093E\u092E \u0915\u0930\u0924\u093E \u0939\u0948?</b>\n\n<b>\u2776.</b> \u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 1Win \u092A\u0930 <b>\u0930\u091C\u093F\u0938\u094D\u091F\u0930</b> \u0915\u0930\u0947\u0902\n<b>\u2777.</b> \u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} <b>\u091C\u092E\u093E</b> \u0915\u0930\u0947\u0902\n<b>\u2778.</b> \u0932\u093E\u0907\u0935 \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938 <b>\u090F\u0915\u094D\u0938\u0947\u0938</b> \u0915\u0930\u0947\u0902`,
-    register: `<b>\uD83D\uDCDD \u0930\u091C\u093F\u0938\u094D\u091F\u094D\u0930\u0947\u0936\u0928</b>\n\n\u0928\u0940\u091A\u0947 \u0926\u093F\u090F \u0917\u090F \u0932\u093F\u0902\u0915 \u092A\u0930 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0915\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\u0964\n\n\u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 \u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915</b>\n\n\u0906\u092A\u0915\u093E \u0930\u091C\u093F\u0938\u094D\u091F\u094D\u0930\u0947\u0936\u0928 \u092A\u0941\u0937\u094D\u091F\u093F \u0939\u094B \u0917\u0908\u0964\n\n${depositStr('hi')} \u0928\u094D\u092F\u0942\u0928\u0924\u092E \u091C\u092E\u093E \u0915\u0930\u0947\u0902 \u0924\u092C <b>\u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938</b> \u092A\u0930 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0947\u0902\u0964`,
-    deposit_small: `<b>\u0905\u092A\u0930\u094D\u092F\u093E\u092A\u094D\u0924 \u091C\u092E\u093E</b>\n\n\u092A\u093E\u092F\u093E \u0917\u092F\u093E: <b>{amount}$</b>\n\u0906\u0935\u0936\u094D\u092F\u0915: ${depositStr('hi')}\n\n\u0915\u0943\u092A\u092F\u093E \u091C\u092E\u093E \u092A\u0942\u0930\u093E \u0915\u0930\u0947\u0902\u0964`,
-    not_registered: `<b>\u0930\u091C\u093F\u0938\u094D\u091F\u094D\u0930\u0947\u0936\u0928 \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E</b>\n\n\u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0915\u093E \u0909\u092A\u092F\u094B\u0917 \u0915\u0930\u0947\u0902\u0964`,
-    access_granted: `<b>\u2B50 VIP \u090F\u0915\u094D\u0938\u0947\u0938!</b>\n\n\u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938 \u090F\u0915\u094D\u0938\u0947\u0938 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0928\u0940\u091A\u0947 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0947\u0902:`,
-    already_registered: `<b>\uD83D\uDC10 ID \u0935\u0947\u0930\u093F\u092B\u093F\u0915\u0947\u0936\u0928</b>\n\n\u0935\u0947\u0930\u093F\u092B\u093F\u0915\u0947\u0936\u0928 \u0915\u0947 \u0932\u093F\u090F \u0905\u092A\u0928\u093E 1Win ID \u092D\u0947\u091C\u0947\u0902\u0964`,
-    already_registered_success: `<b>\u2705 \u0916\u093E\u0924\u093E \u091C\u094B\u0921\u093C\u093E \u0917\u092F\u093E!</b>`,
-    already_registered_already: `\u092F\u0939 ID \u092A\u0939\u0932\u0947 \u0938\u0947 \u0932\u093F\u0902\u0915 \u0939\u0948\u0964`,
-    already_registered_notfound: `<b>ID \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E</b>\n\n\u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\u0964`,
-    language_changed: `\u2705 \u092D\u093E\u0937\u093E \u092C\u0926\u0932\u0940 \u0917\u0908`,
-    register_first: `\u092A\u0939\u0932\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\u0964`,
-    btn_register: `\u0930\u091C\u093F\u0938\u094D\u091F\u0930`,
-    btn_instructions: `\u0915\u0948\u0938\u0947 \u0915\u093E\u092E \u0915\u0930\u0924\u093E \u0939\u0948?`,
-    btn_already: `\u092A\u0939\u0932\u0947 \u0938\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930`,
-    btn_predictions: `\u26A1 \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938`,
+    select_language: `\uD83C\uDF0D \u0905\u092A\u0928\u0940 \u092D\u093E\u0937\u093E \u091A\u0941\u0928\u0947\u0902\nSelect your language`,
+    channel_required: `\uD83D\uDCAC \u091C\u093E\u0930\u0940 \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0939\u092E\u093E\u0930\u0947 \u0906\u0927\u093F\u0915\u093E\u0930\u093F\u0915 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964\n\n\u0924\u093E\u091C\u093C\u093E \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u0914\u0930 \u0905\u0935\u0938\u0930\u094B\u0902 \u0938\u0947 \u0905\u092A\u0921\u0947\u091F \u0930\u0939\u0947\u0902\u0964`,
+    welcome: `<b>\u2728 ROVAS \u092E\u0947\u0902 \u0906\u092A\u0915\u093E \u0938\u094D\u0935\u093E\u0917\u0924 \u0939\u0948\u2728</b>\n\n\u0906\u092A\u0915\u0940 \u0915\u092E\u093E\u0908 \u092C\u0922\u093C\u093E\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0906\u092A\u0915\u093E \u0935\u093F\u0936\u094D\u0935\u0938\u0928\u0940\u092F \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u0938\u0939\u093E\u092F\u0915\u0964\n\n<b>\uD83D\uDD39</b> \u0915\u094B\u0921 <b>${PROMO}</b> \u0915\u0947 \u0938\u093E\u0925 \u0905\u092A\u0928\u093E \u0916\u093E\u0924\u093E \u092C\u0928\u093E\u090F\u0902\n<b>\uD83D\uDD39</b> \u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} \u091C\u092E\u093E \u0915\u0930\u0947\u0902\n<b>\uD83D\uDD39</b> \u0935\u093F\u0936\u0947\u0937 \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u0924\u0915 \u092A\u0939\u0941\u0901\u091A\u0947\u0902`,
+    instructions: `<b>\uD83D\uDCD6 \u0924\u094D\u0935\u0930\u093F\u0924 \u0917\u093E\u0907\u0921</b>\n\n\u0936\u0941\u0930\u0942 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0907\u0928 3 \u091A\u0930\u0923\u094B\u0902 \u0915\u093E \u092A\u093E\u0932\u0928 \u0915\u0930\u0947\u0902:\n\n<b>1.</b> <b>\u092A\u094D\u0930\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0915\u0947 \u0938\u093E\u0925 \u092A\u094D\u0932\u0947\u091F\u092B\u0949\u0930\u094D\u092E \u092A\u0930 \u0905\u092A\u0928\u093E \u0916\u093E\u0924\u093E \u092C\u0928\u093E\u090F\u0902</b>\n<b>2.</b> <b>\u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} \u0905\u092A\u0928\u0947 \u0916\u093E\u0924\u0947 \u092E\u0947\u0902 \u091C\u092E\u093E \u0915\u0930\u0947\u0902</b>\n<b>3.</b> <b>\u0932\u093E\u0907\u0935 \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u0924\u0915 \u092A\u0939\u0941\u0901\u091A\u0947\u0902</b> \u0914\u0930 \u091C\u0940\u0924\u0928\u093E \u0936\u0941\u0930\u0942 \u0915\u0930\u0947\u0902`,
+    register: `<b>\uD83C\uDAF1 \u091A\u0930\u0923 1: \u092A\u0902\u091C\u0940\u0915\u0930\u0923</b>\n\n\u0905\u092A\u0928\u093E \u0916\u093E\u0924\u093E \u092C\u0928\u093E\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0928\u0940\u091A\u0947 \u0926\u093F\u090F \u0917\u090F \u092C\u091F\u0928 \u092A\u0930 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0947\u0902\u0964\n\n\u26A0\uFE0F \u0906\u092A\u0915\u094B \u0905\u0928\u093F\u0935\u093E\u0930\u094D\u092F \u0930\u0942\u092A \u0938\u0947 \u092A\u094D\u0930\u092E\u094B \u0915\u094B\u0921 \u0909\u092A\u092F\u094B\u0917 \u0915\u0930\u0928\u093E \u0939\u094B\u0917\u093E: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 \u091A\u0930\u0923 2: \u0916\u093E\u0924\u093E \u091C\u092E\u093E</b>\n\n\u0906\u092A\u0915\u093E \u092A\u0902\u091C\u0940\u0915\u0930\u0923 \u0938\u092B\u0932\u0924\u093E\u092A\u0942\u0930\u094D\u0935\u0915 \u092A\u0941\u0937\u094D\u091F\u093F \u0939\u094B \u0917\u0908\u0964\n\n\u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} \u091C\u092E\u093E \u0915\u0930\u0947\u0902, \u092B\u093F\u0930 \u0935\u093E\u092A\u0938 \u0906\u090F\u0902 \u0914\u0930 <b>\uD83C\uDFAF \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928</b> \u092A\u0930 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0947\u0902\u0964`,
+    deposit_small: `<b>\u26A0\uFE0F \u0905\u092A\u0930\u094D\u092F\u093E\u092A\u094D\u0924 \u091C\u092E\u093E</b>\n\n\u092A\u0939\u091A\u093E\u0928\u093E \u0917\u092F\u093E: <b>{amount}$</b>\n\u0906\u0935\u0936\u094D\u092F\u0915: ${depositStr('hi')}\n\n\u0915\u0943\u092A\u092F\u093E \u0905\u092A\u0928\u093E \u091C\u092E\u093E \u092A\u0942\u0930\u093E \u0915\u0930\u0947\u0902\u0964`,
+    not_registered: `<b>\uD83D\uDD0E \u0915\u094B\u0908 \u092A\u0902\u091C\u0940\u0915\u0930\u0923 \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E</b>\n\n\u0938\u0941\u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0915\u0930\u0947\u0902 \u0915\u093F \u0906\u092A\u0928\u0947 \u092A\u0902\u091C\u0940\u0915\u0930\u0923 \u0915\u0947 \u0938\u092E\u092F \u092A\u094D\u0930\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0915\u093E \u0909\u092A\u092F\u094B\u0917 \u0915\u093F\u092F\u093E \u0939\u0948\u0964\n\n\u0915\u0941\u091B \u092E\u093F\u0928\u091F \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E \u0915\u0930\u0947\u0902 \u0914\u0930 \u092A\u0941\u0928\u0903 \u092A\u094D\u0930\u092F\u093E\u0938 \u0915\u0930\u0947\u0902\u0964`,
+    access_granted: `<b>\uD83C\uDFC6 VIP \u090F\u0915\u094D\u0938\u0947\u0938 \u0905\u0928\u0932\u0949\u0915!</b>\n\n\u092C\u0927\u093E\u0908 \u0939\u094B! \u0906\u092A\u0915\u0947 \u0935\u093F\u0936\u0947\u0937 \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u0905\u092C \u0909\u092A\u0932\u092C\u094D\u0927 \u0939\u0948\u0902\u0964`,
+    already_registered: `<b>\uD83D\uDCB0 \u0905\u092A\u0928\u093E \u0916\u093E\u0924\u093E \u0932\u093F\u0902\u0915 \u0915\u0930\u0947\u0902</b>\n\n\u0916\u093E\u0924\u093E \u0932\u093F\u0902\u0915 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u091A\u0948\u091F \u092E\u0947\u0902 \u0905\u092A\u0928\u093E 1Win ID \u092D\u0947\u091C\u0947\u0902\u0964\n\n\u2139\uFE0F \u0906\u092A\u0915\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 \u092A\u0902\u091C\u0940\u0915\u0943\u0924 \u0939\u094B\u0928\u093E \u091A\u093E\u0939\u093F\u090F\u0964`,
+    already_registered_success: `<b>\u2705 \u0916\u093E\u0924\u093E \u0938\u092B\u0932\u0924\u093E\u092A\u0942\u0930\u094D\u0935\u0915 \u0932\u093F\u0902\u0915 \u0939\u094B \u0917\u092F\u093E!</b>\n\n\u0906\u092A\u0915\u093E 1Win ID \u0905\u092C \u0906\u092A\u0915\u0947 Telegram \u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C \u0917\u092F\u093E \u0939\u0948\u0964`,
+    already_registered_already: `\u092F\u0939 ID \u092A\u0939\u0932\u0947 \u0938\u0947 \u0915\u093F\u0938\u0940 \u0926\u0942\u0938\u0930\u0947 \u0916\u093E\u0924\u0947 \u0938\u0947 \u0932\u093F\u0902\u0915 \u0939\u0948\u0964`,
+    already_registered_notfound: `<b>\u274C ID \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E</b>\n\n\u092A\u0939\u0932\u0947 \u092A\u094D\u0930\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 \u090F\u0915 \u0916\u093E\u0924\u093E \u092C\u0928\u093E\u090F\u0902\u0964`,
+    language_changed: `\u2705 \u092D\u093E\u0937\u093E \u0905\u092A\u0921\u0947\u091F \u0915\u0940 \u0917\u0908`,
+    register_first: `\u0915\u0943\u092A\u092F\u093E \u092A\u0939\u0932\u0947 \u092A\u0902\u091C\u0940\u0915\u0930\u0923 \u0915\u0930\u0947\u0902\u0964`,
+    btn_register: `\uD83C\uDAF1 \u092A\u0902\u091C\u0940\u0915\u0930\u0923`,
+    btn_instructions: `\uD83D\uDCD6 \u0917\u093E\u0907\u0921`,
+    btn_already: `\uD83D\uDCB0 \u092A\u0939\u0932\u0947 \u0938\u0947 \u092A\u0902\u091C\u0940\u0915\u0943\u0924`,
+    btn_predictions: `\uD83C\uDFAF \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928`,
     btn_back: `\u2190 \u0935\u093E\u092A\u0938`,
-    btn_register_now: `\u0905\u092D\u0940 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902`,
-    btn_deposit: `\u091C\u092E\u093E \u0915\u0930\u0947\u0902`,
-    btn_join: `\u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902`,
-    btn_language: `\u092D\u093E\u0937\u093E`,
-    btn_channel: `\u0938\u0924\u094D\u092F\u093E\u092A\u093F\u0924 \u0915\u0930\u0947\u0902`,
-    btn_change_language: `\uD83C\uDF10 \u092D\u093E\u0937\u093E \u092C\u0926\u0932\u0947\u0902`,
-    deposit_insufficient_no: `<b>\u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915</b>\n\n${depositStr('hi')} \u0928\u094D\u092F\u0942\u0928\u0924\u092E \u091C\u092E\u093E \u0915\u0930\u0947\u0902\u0964`,
-    missing: `<b>\u0906\u092A\u0915\u094B <b>{remaining}$</b> ({local}) \u0914\u0930 \u091A\u093E\u0939\u093F\u090F</b>`,
-    channel_required_alert: `\u092A\u0939\u0932\u0947 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964`
+    btn_register_now: `\u27A1\uFE0F \u0916\u093E\u0924\u093E \u092C\u0928\u093E\u090F\u0902`,
+    btn_deposit: `\uD83D\uDCB3 \u091C\u092E\u093E \u0915\u0930\u0947\u0902`,
+    btn_join: `\uD83D\uDCAC \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902`,
+    btn_language: `\uD83C\uDF0D \u092D\u093E\u0937\u093E`,
+    btn_channel: `\u2705 \u091C\u0941\u0921\u093C \u0917\u092F\u093E`,
+    btn_change_language: `\uD83C\uDF0D \u092D\u093E\u0937\u093E \u092C\u0926\u0932\u0947\u0902`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 \u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915</b>\n\n\u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u0924\u0915 \u092A\u0939\u0941\u0901\u091A\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} \u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915 \u0939\u0948\u0964`,
+    missing: `<b>\uD83D\uDCE1 \u0906\u092A\u0915\u094B <b>{remaining}$</b> ({local}) \u0914\u0930 \u091A\u093E\u0939\u093F\u090F</b>\n\n\u0905\u092A\u0928\u093E \u091C\u092E\u093E \u092A\u0942\u0930\u093E \u0915\u0930\u0947\u0902\u0964`,
+    channel_required_alert: `\u092A\u0939\u0932\u0947 \u0906\u0927\u093F\u0915\u093E\u0930\u093F\u0915 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964`
 };
 
 T.uz = {
-    select_language: `\uD83C\uDF10 Tilni tanlang\nPlease select your language`,
-    channel_required: `Davom etish uchun kanalimizga qo'shiling.`,
-    welcome: `<b>\uD83C\uDFB0 ROVAS ga xush kelibsiz</b>\n\nEng yaxshi casino taxmin boti.\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> bilan ro'yxatdan o'ting\n<b>\u2777.</b> Kamida ${depositStr('uz')} to'ldiring\n<b>\u2778.</b> VIP taxminlarga kiring`,
-    instructions: `<b>\u2753 Qanday ishlaydi?</b>\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> bilan 1Win da <b>ro'yxatdan o'ting</b>\n<b>\u2777.</b> Kamida ${depositStr('uz')} <b>to'ldiring</b>\n<b>\u2778.</b> Jonli taxminlarga <b>kiring</b>`,
-    register: `<b>\uD83D\uDCDD Ro'yxatdan o'tish</b>\n\nPastdagi havola orqali ro'yxatdan o'ting.\n\nPromo kod: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 To'ldirish kerak</b>\n\nRo'yxatingiz tasdiqlandi.\n\nKamida ${depositStr('uz')} to'ldiring, keyin <b>Taxminlar</b> tugmasini bosing.`,
-    deposit_small: `<b>Yetarli emas</b>\n\n aniqlandi: <b>{amount}$</b>\nKerak: ${depositStr('uz')}`,
-    not_registered: `<b>Ro'yxat topilmadi</b>\n\nPromo kod <b>${PROMO}</b> bilan ro'yxatdan o'ting.`,
-    access_granted: `<b>\u2B50 VIP ruxsat!</b>\n\nTaxminlarga kirish uchun pastga bosing:`,
-    already_registered: `<b>\uD83D\uDC10 ID tekshirish</b>\n\n1Win ID ingizni yuboring.\n\nPromo kod <b>${PROMO}</b> bilan ro'yxatdan o'tganingizga ishonch hosil qiling.`,
-    already_registered_success: `<b>\u2705 Hisob bog'landi!</b>`,
-    already_registered_already: `Bu ID boshqa hisobga bog'langan.`,
-    already_registered_notfound: `<b>Topilmadi</b>\n\nPromo kod <b>${PROMO}</b> bilan ro'yxatdan o'ting.`,
-    language_changed: `\u2705 Til o'zgartirildi`,
-    register_first: `Avval ro'yxatdan o'ting.`,
-    btn_register: `Ro'yxatdan o'tish`,
-    btn_instructions: `Qanday ishlaydi?`,
-    btn_already: `Avval ro'yxatdan`,
-    btn_predictions: `\u26A1 Taxminlar`,
+    select_language: `\uD83C\uDF0D Tilni tanlang\nPlease select your language`,
+    channel_required: `\uD83D\uDCAC Davom etish uchun rasmiy kanalimizga qo'shiling.\n\nSo'nggi taxminlar va imkoniyatlardan xabardor bo'ling.`,
+    welcome: `<b>\u2728 ROVAS ga xush kelibsiz\u2728</b>\n\nYutuqlaringizni maksimal darajada oshirish uchun ishonchli taxmin yordamchingiz.\n\n<b>\uD83D\uDD39</b> <b>${PROMO}</b> kodi bilan hisob yarating\n<b>\uD83D\uDD39</b> Kamida ${depositStr('uz')} to'ldiring\n<b>\uD83D\uDD39</b> Maxsus taxminlarga kirishingiz`,
+    instructions: `<b>\uD83D\uDCD6 Tezkor yo'riqnoma</b>\n\nBoshlash uchun ushbu 3 qadamni bajaring:\n\n<b>1.</b> <b>Promo kodi <b>${PROMO}</b> bilan platformada hisob yarating</b>\n<b>2.</b> <b>Hisobingizni kamida ${depositStr('uz')} miqdorda to'ldiring</b>\n<b>3.</b> <b>Jonli taxminlarga kirishingiz</b> va yutishni boshlang`,
+    register: `<b>\uD83C\uDAF1 1-qadam: Ro'yxatdan o'tish</b>\n\nHisob yaratish uchun pastdagi tugmani bosing.\n\n\u26A0\uFE0F Promo kodni majburiy ishlating: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 2-qadam: Hisobni to'ldirish</b>\n\nRo'yxatingiz muvaffaqiyatli tasdiqlandi.\n\nKamida ${depositStr('uz')} to'ldiring, keyin qaytib <b>\uD83C\uDFAF Taxminlar</b> tugmasini bosing.`,
+    deposit_small: `<b>\u26A0\uFE0F Yetarli emas to'lov</b>\n\nAniqlandi: <b>{amount}$</b>\nKerakli: ${depositStr('uz')}\n\nIltimos, to'lovingizni to'ldiring.`,
+    not_registered: `<b>\uD83D\uDD0E Ro'yxat topilmadi</b>\n\nRo'yxatdan o'tayotganda promo kod <b>${PROMO}</b> ishlatganingizga ishonch hosil qiling.\n\nBir necha daqiqa kutib, qayta urinib ko'ring.`,
+    access_granted: `<b>\uD83C\uDFC6 VIP kirish ochilmoqda!</b>\n\nTabriklaymiz! Maxsus taxminlaringiz endi mavjud.`,
+    already_registered: `<b>\uD83D\uDCB0 Hisobni bog'lash</b>\n\nHisob bog'lash uchun chatga 1Win ID ingizni yuboring.\n\n\u2139\uFE0F Siz <b>${PROMO}</b> kodi bilan ro'yxatdan o'tgan bo'lishingiz kerak.`,
+    already_registered_success: `<b>\u2705 Hisob muvaffaqiyatli bog'landi!</b>\n\n1Win ID ingiz endi Telegram profilingizga ulandi.`,
+    already_registered_already: `Bu ID allaqachon boshqa hisobga bog'langan.`,
+    already_registered_notfound: `<b>\u274C ID topilmadi</b>\n\nAvval promo kodi <b>${PROMO}</b> bilan hisob yarating.`,
+    language_changed: `\u2705 Til yangilandi`,
+    register_first: `Iltimos, avval ro'yxatdan o'ting.`,
+    btn_register: `\uD83C\uDAF1 Ro'yxatdan o'tish`,
+    btn_instructions: `\uD83D\uDCD6 Yo'riqnoma`,
+    btn_already: `\uD83D\uDCB0 Avval ro'yxatdan`,
+    btn_predictions: `\uD83C\uDFAF Taxminlar`,
     btn_back: `\u2190 Orqaga`,
-    btn_register_now: `Hozir ro'yxatdan o'ting`,
-    btn_deposit: `To'ldiring`,
-    btn_join: `Kanalga qo'shiling`,
-    btn_language: `Til`,
-    btn_channel: `Tekshirish`,
-    btn_change_language: `\uD83C\uDF10 Tilni o'zgartirish`,
-    deposit_insufficient_no: `<b>To'ldirish kerak</b>\n\n${depositStr('uz')} kamida to'ldiring.`,
-    missing: `<b>Sizga yana <b>{remaining}$</b> ({local}) kerak</b>`,
-    channel_required_alert: `Avval kanalga qo'shiling.`
+    btn_register_now: `\u27A1\uFE0F Hisob yaratish`,
+    btn_deposit: `\uD83D\uDCB3 To'ldirish`,
+    btn_join: `\uD83D\uDCAC Kanalga qo'shilish`,
+    btn_language: `\uD83C\uDF0D Til`,
+    btn_channel: `\u2705 Qo'shildim`,
+    btn_change_language: `\uD83C\uDF0D Tilni o'zgartirish`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 To'ldirish kerak</b>\n\nTaxminlarga kirish uchun kamida ${depositStr('uz')} to'ldirish kerak.`,
+    missing: `<b>\uD83D\uDCE1 Sizga yana <b>{remaining}$</b> ({local}) kerak</b>\n\nTo'lovingizni to'ldiring.`,
+    channel_required_alert: `Avval rasmiy kanalga qo'shiling.`
 };
 
 T.es = {
-    select_language: `\uD83C\uDF10 Seleccione su idioma\nPlease select your language`,
-    channel_required: `Unase a nuestro canal para continuar.`,
-    welcome: `<b>\uD83C\uDFB0 Bienvenido a ROVAS</b>\n\nEl mejor bot de predicciones casino.\n\n<b>\u2776.</b> Registrese con el codigo <b>${PROMO}</b>\n<b>\u2777.</b> Deposite minimo ${depositStr('es')}\n<b>\u2778.</b> Acceda a predicciones VIP`,
-    instructions: `<b>\u2753 Como funciona?</b>\n\n<b>\u2776.</b> <b>Registrese</b> en 1Win con codigo <b>${PROMO}</b>\n<b>\u2777.</b> <b>Deposite</b> minimo ${depositStr('es')}\n<b>\u2778.</b> <b>Acceda</b> a predicciones en vivo`,
-    register: `<b>\uD83D\uDCDD Registro</b>\n\nRegistrese primero haciendo clic en el enlace.\n\nCodigo: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 Deposito requerido</b>\n\nSu registro esta confirmado.\n\nDeposite minimo ${depositStr('es')} luego clic en <b>Predicciones</b>.`,
-    deposit_small: `<b>Deposito insuficiente</b>\n\nDetectado: <b>{amount}$</b>\nRequerido: ${depositStr('es')}`,
-    not_registered: `<b>Registro no detectado</b>\n\nUse codigo <b>${PROMO}</b>.`,
-    access_granted: `<b>\u2B50 VIP Concedido!</b>\n\nClic abajo para predicciones:`,
-    already_registered: `<b>\uD83D\uDC10 Verificacion ID</b>\n\nEnvie su ID 1Win para verificacion.`,
-    already_registered_success: `<b>\u2705 Cuenta vinculada!</b>`,
-    already_registered_already: `Este ID ya esta vinculado.`,
-    already_registered_notfound: `<b>ID no encontrado</b>\n\nRegistrese con codigo <b>${PROMO}</b>.`,
-    language_changed: `\u2705 Idioma cambiado`,
-    register_first: `Registrese primero.`,
-    btn_register: `Registrarse`,
-    btn_instructions: `Como funciona?`,
-    btn_already: `Ya registrado`,
-    btn_predictions: `\u26A1 Predicciones`,
+    select_language: `\uD83C\uDF0D Seleccione su idioma\nPlease select your language`,
+    channel_required: `\uD83D\uDCAC Unase a nuestro canal oficial para continuar.\n\nMantengase actualizado con las ultimas predicciones y no pierda ninguna oportunidad.`,
+    welcome: `<b>\u2728 Bienvenido a ROVAS\u2728</b>\n\nSu asistente de predicciones de confianza para maximizar sus ganancias.\n\n<b>\uD83D\uDD39</b> Cree su cuenta con el codigo <b>${PROMO}</b>\n<b>\uD83D\uDD39</b> Deposite un minimo de ${depositStr('es')}\n<b>\uD83D\uDD39</b> Acceda a predicciones exclusivas`,
+    instructions: `<b>\uD83D\uDCD6 Guia rapida</b>\n\nSiga estos 3 pasos para comenzar:\n\n<b>1.</b> <b>Cree su cuenta</b> en la plataforma con el codigo promo <b>${PROMO}</b>\n<b>2.</b> <b>Fonde su cuenta</b> con al menos ${depositStr('es')}\n<b>3.</b> <b>Acceda a predicciones en vivo</b> y comience a ganar`,
+    register: `<b>\uD83C\uDAF1 Paso 1: Registro</b>\n\nHaga clic en el boton de abajo para crear su cuenta.\n\n\u26A0\uFE0F Debe usar obligatoriamente el codigo promo: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 Paso 2: Fonde su cuenta</b>\n\nSu registro ha sido confirmado con exito.\n\nRealice un deposito minimo de ${depositStr('es')}, luego vuelva y haga clic en <b>\uD83C\uDFAF Predicciones</b>.`,
+    deposit_small: `<b>\u26A0\uFE0F Deposito incompleto</b>\n\nDetectado: <b>{amount}$</b>\nRequerido: ${depositStr('es')}\n\nPor favor complete su deposito para desbloquear el acceso.`,
+    not_registered: `<b>\uD83D\uDD0E Ningun registro encontrado</b>\n\nVerifique que haya usado el codigo promo <b>${PROMO}</b> al registrarse.\n\nEspere unos minutos e intente de nuevo.`,
+    access_granted: `<b>\uD83C\uDFC6 Acceso VIP Desbloqueado!</b>\n\nFelicidades! Sus predicciones exclusivas ahora estan disponibles.`,
+    already_registered: `<b>\uD83D\uDCB0 Vincular su cuenta</b>\n\nEnvie su ID de 1Win en el chat para vincular su cuenta.\n\n\u2139\uFE0F Debe estar registrado con el codigo <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 Cuenta vinculada con exito!</b>\n\nSu ID de 1Win ahora esta conectado a su perfil de Telegram.`,
+    already_registered_already: `Este ID ya esta vinculado a otra cuenta.`,
+    already_registered_notfound: `<b>\u274C ID no encontrado</b>\n\nCree primero una cuenta con el codigo promo <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Idioma actualizado`,
+    register_first: `Por favor registrese primero.`,
+    btn_register: `\uD83C\uDAF1 Registro`,
+    btn_instructions: `\uD83D\uDCD6 Guia`,
+    btn_already: `\uD83D\uDCB0 Ya registrado`,
+    btn_predictions: `\uD83C\uDFAF Predicciones`,
     btn_back: `\u2190 Volver`,
-    btn_register_now: `Registrarse ahora`,
-    btn_deposit: `Depositar`,
-    btn_join: `Unirse al canal`,
-    btn_language: `Idioma`,
-    btn_channel: `Verificar`,
-    btn_change_language: `\uD83C\uDF10 Cambiar idioma`,
-    deposit_insufficient_no: `<b>Deposito requerido</b>\n\nDeposite minimo ${depositStr('es')}.`,
-    missing: `<b>Le falta <b>{remaining}$</b> ({local})</b>`,
-    channel_required_alert: `Unase al canal primero.`
+    btn_register_now: `\u27A1\uFE0F Crear cuenta`,
+    btn_deposit: `\uD83D\uDCB3 Depositar`,
+    btn_join: `\uD83D\uDCAC Unirse al canal`,
+    btn_language: `\uD83C\uDF0D Idioma`,
+    btn_channel: `\u2705 Me uni`,
+    btn_change_language: `\uD83C\uDF0D Cambiar idioma`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 Deposito necesario</b>\n\nSe requiere un deposito minimo de ${depositStr('es')} para acceder a las predicciones.`,
+    missing: `<b>\uD83D\uDCE1 Le falta <b>{remaining}$</b> ({local})</b>\n\nComplete su deposito para desbloquear el acceso.`,
+    channel_required_alert: `Unase primero al canal oficial.`
 };
 
 T.az = {
-    select_language: `\uD83C\uDF10 Dilinizi secin\nPlease select your language`,
-    channel_required: `Davam etmak ucun kanalimiza qosulun.`,
-    welcome: `<b>\uD83C\uDFB0 ROVAS-a xos geldiniz</b>\n\n\u018Fn yaxsi casino proqnoz botu.\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ila qeydiyyatdan kecin\n<b>\u2777.</b> Minimum ${depositStr('az')} daxil edin\n<b>\u2778.</b> VIP proqnozlara daxil olun`,
-    instructions: `<b>\u2753 Nec\u0259 isleyir?</b>\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ila 1Win-da <b>qeydiyyat</b>\n<b>\u2777.</b> Minimum ${depositStr('az')} <b>daxil edin</b>\n<b>\u2778.</b> Canli proqnozlara <b>daxil olun</b>`,
-    register: `<b>\uD83D\uDCDD Qeydiyyat</b>\n\nLink vasit\u0259sil\u0259 qeydiyyatdan kecin.\n\nPromo kod: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 Doldurma lazimdir</b>\n\nQeydiyyatiniz tesdiqlendi.\n\nMinimum ${depositStr('az')} daxil edin, sonra <b>Proqnozlar</b> basin.`,
-    deposit_small: `<b>Kifayet qeder deyil</b>\n\nAşkar: <b>{amount}$</b>\nLazim: ${depositStr('az')}`,
-    not_registered: `<b>Qeydiyyat tapilmadi</b>\n\nPromo kod <b>${PROMO}</b> istifade edin.`,
-    access_granted: `<b>\u2B50 VIP Giris!</b>\n\nProqnozlara daxil olmaq ucun:`,
-    already_registered: `<b>\uD83D\uDC10 ID yoxlama</b>\n\n1Win ID-nizi gonderin.`,
-    already_registered_success: `<b>\u2705 Hesab baglandi!</b>`,
-    already_registered_already: `Bu ID artiq baglanib.`,
-    already_registered_notfound: `<b>Tapilmadi</b>\n\nPromo kod <b>${PROMO}</b> ila qeydiyyatdan kecin.`,
-    language_changed: `\u2705 Dil deyisdirildi`,
-    register_first: `Evvelce qeydiyyatdan kecin.`,
-    btn_register: `Qeydiyyat`,
-    btn_instructions: `Nec\u0259 isleyir?`,
-    btn_already: `Artiq qeydiyyatda`,
-    btn_predictions: `\u26A1 Proqnozlar`,
+    select_language: `\uD83C\uDF0D Dilinizi secin\nPlease select your language`,
+    channel_required: `\uD83D\uDCAC Davam etmek ucun resmi kanalimiza qosulun.\n\nSon proqnozlar ve imkanlar haqqinda melumat alin.`,
+    welcome: `<b>\u2728 ROVAS-a xos geldiniz\u2728</b>\n\nQazanclarinizi maksimum seviyyeye cixartmaq ucun etibarli proqnoz komekciniz.\n\n<b>\uD83D\uDD39</b> <b>${PROMO}</b> kodu ila hesab yaradin\n<b>\uD83D\uDD39</b> Minimum ${depositStr('az')} daxil edin\n<b>\uD83D\uDD39</b> Xsususi proqnozlara catin`,
+    instructions: `<b>\uD83D\uDCD6 Tez me'lumat</b>\n\nBaslamaq ucun bu 3 addimi izleyin:\n\n<b>1.</b> <b>Promo kod <b>${PROMO}</b> ila platformada hesab yaradin</b>\n<b>2.</b> <b>Hesabinizi minimum ${depositStr('az')} miqdarinda daxil edin</b>\n<b>3.</b> <b>Canli proqnozlara catin</b> ve qazanmaga baslayin`,
+    register: `<b>\uD83C\uDAF1 Addim 1: Qeydiyyat</b>\n\nHesab yaratmaq ucun asagidaki duymeye basin.\n\n\u26A0\uFE0F Promo kodu mecburi istifade edin: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 Addim 2: Hesabi doldurma</b>\n\nQeydiyyatiniz ugurla tesdiqlendi.\n\nMinimum ${depositStr('az')} daxil edin, sonra qayidib <b>\uD83C\uDFAF Proqnozlar</b> duymesine basin.`,
+    deposit_small: `<b>\u26A0\uFE0F Yetarsiz odenis</b>\n\nMueyyen edildi: <b>{amount}$</b>\nLazim olan: ${depositStr('az')}\n\nLutfen, odenisinizi doldurun.`,
+    not_registered: `<b>\uD83D\uDD0E Hece bir qeydiyyat tapilmadi</b>\n\nQeydiyyat zamani promo kod <b>${PROMO}</b> istifade etdiyinize emin olun.\n\nBir nece deqiqe gozleyin ve yeniden sinayin.`,
+    access_granted: `<b>\uD83C\uDFC6 VIP giris acilib!</b>\n\nTebrikler! Xsususi proqnozlariniz indi movcuddur.`,
+    already_registered: `<b>\uD83D\uDCB0 Hesabi baglamaq</b>\n\nHesab baglamaq ucun chat-a 1Win ID-nizi gonderin.\n\n\u2139\uFE0F Siz <b>${PROMO}</b> kodu ila qeydiyyatdan kecmisiniz lazimdir.`,
+    already_registered_success: `<b>\u2705 Hesab ugurla baglandi!</b>\n\n1Win ID-niz indi Telegram profilinize baglanib.`,
+    already_registered_already: `Bu ID artiq basqa hesaba baglanib.`,
+    already_registered_notfound: `<b>\u274C ID tapilmadi</b>\n\nEvvelce promo kod <b>${PROMO}</b> ila hesab yaradin.`,
+    language_changed: `\u2705 Dil yenilendi`,
+    register_first: `Lutfen, evvelce qeydiyyatdan kecin.`,
+    btn_register: `\uD83C\uDAF1 Qeydiyyat`,
+    btn_instructions: `\uD83D\uDCD6 Me'lumat`,
+    btn_already: `\uD83D\uDCB0 Artiq qeydiyyatda`,
+    btn_predictions: `\uD83C\uDFAF Proqnozlar`,
     btn_back: `\u2190 Geri`,
-    btn_register_now: `Indi qeydiyyat`,
-    btn_deposit: `Daxil edin`,
-    btn_join: `Kanala qosulun`,
-    btn_language: `Dil`,
-    btn_channel: `Yoxlayin`,
-    btn_change_language: `\uD83C\uDF10 Dili deyis`,
-    deposit_insufficient_no: `<b>Doldurma lazimdir</b>\n\nMinimum ${depositStr('az')} daxil edin.`,
-    missing: `<b>Siz\u0259 <b>{remaining}$</b> ({local}) lazimdir</b>`,
-    channel_required_alert: `Evvelce kanala qosulun.`
+    btn_register_now: `\u27A1\uFE0F Hesab yaratmaq`,
+    btn_deposit: `\uD83D\uDCB3 Doldurmaq`,
+    btn_join: `\uD83D\uDCAC Kanala qosulmaq`,
+    btn_language: `\uD83C\uDF0D Dil`,
+    btn_channel: `\u2705 Qosuldum`,
+    btn_change_language: `\uD83C\uDF0D Dili deyisdirmek`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 Doldurma lazimdir</b>\n\nProqnozlara catmaq ucun minimum ${depositStr('az')} doldurmaq lazimdir.`,
+    missing: `<b>\uD83D\uDCE1 Size heniz <b>{remaining}$</b> ({local}) lazimdir</b>\n\nOdenisinizi doldurun.`,
+    channel_required_alert: `Evvelce resmi kanala qosulun.`
 };
 
 T.tr = {
-    select_language: `\uD83C\uDF10 Lutfen dilinizi secin\nPlease select your language`,
-    channel_required: `Devam etmek icin kanalimiza katilin.`,
-    welcome: `<b>\uD83C\uDFB0 ROVAS'a hos geldiniz</b>\n\nEn iyi casino tahmin botu.\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ile kayit olun\n<b>\u2777.</b> Minimum ${depositStr('tr')} yatirin\n<b>\u2778.</b> VIP tahminlere erisin`,
-    instructions: `<b>\u2753 Nasil calisir?</b>\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ile 1Win'e <b>kayit olun</b>\n<b>\u2777.</b> Minimum ${depositStr('tr')} <b>yatirin</b>\n<b>\u2778.</b> Canli tahminlere <b>erisin</b>`,
-    register: `<b>\uD83D\uDCDD Kayit</b>\n\nAsagidaki linkten kayit olun.\n\nPromo kod: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 Yatirim gerekli</b>\n\nKayitiniz onaylandi.\n\nMinimum ${depositStr('tr')} yatirin, sonra <b>Tahminler</b> tiklayin.`,
-    deposit_small: `<b>Yetersiz yatirim</b>\n\nTespit: <b>{amount}$</b>\nGerek: ${depositStr('tr')}`,
-    not_registered: `<b>Kayit bulunamadi</b>\n\nPromo kod <b>${PROMO}</b> kullanin.`,
-    access_granted: `<b>\u2B50 VIP Erisim!</b>\n\nTahminlere erismek icin:`,
-    already_registered: `<b>\uD83D\uDC10 ID Dogrulama</b>\n\n1Win ID'nizi gonderin.`,
-    already_registered_success: `<b>\u2705 Hesap baglandi!</b>`,
-    already_registered_already: `Bu ID baska hesaba bagli.`,
-    already_registered_notfound: `<b>ID bulunamadi</b>\n\nPromo kod <b>${PROMO}</b> ile kayit olun.`,
-    language_changed: `\u2705 Dil degistirildi`,
-    register_first: `Once kayit olun.`,
-    btn_register: `Kayit ol`,
-    btn_instructions: `Nasil calisir?`,
-    btn_already: `Zaten kayitli`,
-    btn_predictions: `\u26A1 Tahminler`,
+    select_language: `\uD83C\uDF0D Lutfen dilinizi secin\nPlease select your language`,
+    channel_required: `\uD83D\uDCAC Devam etmek icin resmi kanalimiza katilin.\n\nSon tahminler ve firsatlardan haberdar olun.`,
+    welcome: `<b>\u2728 ROVAS'a hos geldiniz\u2728</b>\n\nKazanclarinizi maksimize etmek icin guvenilir tahmin asistaniniz.\n\n<b>\uD83D\uDD39</b> <b>${PROMO}</b> koduyla hesabinizi olusturun\n<b>\uD83D\uDD39</b> Minimum ${depositStr('tr')} yatirin\n<b>\uD83D\uDD39</b> Ozel tahminlere erisin`,
+    instructions: `<b>\uD83D\uDCD6 Hizli Rehber</b>\n\nBaslamak icin bu 3 adimi izleyin:\n\n<b>1.</b> <b>Promo kod <b>${PROMO}</b> ile platformada hesabinizi olusturun</b>\n<b>2.</b> <b>Hesabinizi en az ${depositStr('tr')} yatirarak finanse edin</b>\n<b>3.</b> <b>Canli tahminlere erisin</b> ve kazanmaya baslayin`,
+    register: `<b>\uD83C\uDAF1 Adim 1: Kayit</b>\n\nHesabinizi olusturmak icin asagidaki butona tiklayin.\n\n\u26A0\uFE0F Promo kodu zorunlu olarak kullanin: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 Adim 2: Hesabi Finanse Etme</b>\n\nKaydiniz basariyla dogrulandi.\n\nEn az ${depositStr('tr')} yatirin, sonra geri donup <b>\uD83C\uDFAF Tahminler</b> butonuna tiklayin.`,
+    deposit_small: `<b>\u26A0\uFE0F Yetersiz yatirim</b>\n\nTespit edilen: <b>{amount}$</b>\nGereken: ${depositStr('tr')}\n\nLutfen yatiriminizi tamamlayin.`,
+    not_registered: `<b>\uD83D\uDD0E Kayit bulunamadi</b>\n\nKayit sirasinda promo kod <b>${PROMO}</b> kullandiginizdan emin olun.\n\nBir kac dakika bekleyip tekrar deneyin.`,
+    access_granted: `<b>\uD83C\uDFC6 VIP Erisim Acildi!</b>\n\nTebrikler! Ozel tahminleriniz simdi kullanilabilir.`,
+    already_registered: `<b>\uD83D\uDCB0 Hesabinizi Baglayin</b>\n\nHesabinizi baglamak icin 1Win ID'nizi sohbete gonderin.\n\n\u2139\uFE0F <b>${PROMO}</b> koduyla kayit olmus olmaniz gerekiyor.`,
+    already_registered_success: `<b>\u2705 Hesap basariyla baglandi!</b>\n\n1Win ID'niz artik Telegram profilinize baglandi.`,
+    already_registered_already: `Bu ID zaten baska bir hesaba bagli.`,
+    already_registered_notfound: `<b>\u274C ID bulunamadi</b>\n\nOnce promo kod <b>${PROMO}</b> ile bir hesap olusturun.`,
+    language_changed: `\u2705 Dil guncellendi`,
+    register_first: `Lutfen once kayit olun.`,
+    btn_register: `\uD83C\uDAF1 Kayit`,
+    btn_instructions: `\uD83D\uDCD6 Rehber`,
+    btn_already: `\uD83D\uDCB0 Zaten kayitli`,
+    btn_predictions: `\uD83C\uDFAF Tahminler`,
     btn_back: `\u2190 Geri`,
-    btn_register_now: `Simdi kayit ol`,
-    btn_deposit: `Yatir`,
-    btn_join: `Kanala katil`,
-    btn_language: `Dil`,
-    btn_channel: `Dogrula`,
-    btn_change_language: `\uD83C\uDF10 Dili degistir`,
-    deposit_insufficient_no: `<b>Yatirim gerekli</b>\n\nMinimum ${depositStr('tr')} yatirin.`,
-    missing: `<b>Eksik: <b>{remaining}$</b> ({local})</b>`,
-    channel_required_alert: `Once kanala katilin.`
+    btn_register_now: `\u27A1\uFE0F Hesap olustur`,
+    btn_deposit: `\uD83D\uDCB3 Yatir`,
+    btn_join: `\uD83D\uDCAC Kanala katil`,
+    btn_language: `\uD83C\uDF0D Dil`,
+    btn_channel: `\u2705 Katildim`,
+    btn_change_language: `\uD83C\uDF0D Dili degistir`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 Yatirim gerekiyor</b>\n\nTahminlere erismek icin minimum ${depositStr('tr')} yatirim gerekiyor.`,
+    missing: `<b>\uD83D\uDCE1 Size heniz <b>{remaining}$</b> ({local}) eksik</b>\n\nYatiriminizi tamamlayin.`,
+    channel_required_alert: `Once resmi kanala katilin.`
 };
 
 T.ar = {
-    select_language: `\uD83C\uDF10 \u0627\u062E\u062A\u0631 \u0644\u063A\u062A\u0643\nPlease select your language`,
-    channel_required: `\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0642\u0646\u0627\u062A\u0646\u0627 \u0644\u0644\u0645\u062A\u0627\u0628\u0639\u0629.`,
-    welcome: `<b>\uD83C\uDFB0 \u0645\u0631\u062D\u0628\u0627 \u0628\u0643 \u0641\u064A ROVAS</b>\n\n\u0623\u0641\u0636\u0644 \u0631\u0648\u0628\u0648\u062A \u062A\u0648\u0642\u0639\u0627\u062A \u0627\u0644\u0643\u0627\u0632\u064A\u0646\u0648.\n\n<b>\u2776.</b> \u0633\u062C\u0644 \u0628\u0631\u0645\u0632 <b>${PROMO}</b>\n<b>\u2777.</b> \u0623\u0648\u062F\u0639 ${depositStr('ar')} \u062D\u062F \u0623\u062F\u0646\u0649\n<b>\u2778.</b> \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u062A\u0648\u0642\u0639\u0627\u062A VIP`,
-    instructions: `<b>\u2753 \u0643\u064A\u0641 \u064A\u0639\u0645\u0644\u061F</b>\n\n<b>\u2776.</b> <b>\u0633\u062C\u0644</b> \u0641\u064A 1Win \u0628\u0631\u0645\u0632 <b>${PROMO}</b>\n<b>\u2777.</b> <b>\u0623\u0648\u062F\u0639</b> ${depositStr('ar')} \u062D\u062F \u0623\u062F\u0646\u0649\n<b>\u2778.</b> <b>\u0627\u0644\u0648\u0635\u0648\u0644</b> \u0644\u0644\u062A\u0648\u0642\u0639\u0627\u062A`,
-    register: `<b>\uD83D\uDCDD \u0627\u0644\u062A\u0633\u062C\u064A\u0644</b>\n\n\u0627\u0636\u063A\u0637 \u0639\u0644\u0649 \u0627\u0644\u0631\u0627\u0628\u0637 \u0623\u062F\u0646\u0627\u0647.\n\n\u0627\u0644\u0631\u0645\u0632: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 \u0625\u064A\u062F\u0627\u0639 \u0645\u0637\u0644\u0648\u0628</b>\n\n\u062A\u0633\u062C\u064A\u0644\u0643 \u0645\u0624\u0643\u062F.\n\n\u0623\u0648\u062F\u0639 ${depositStr('ar')} \u062B\u0645 <u0627\u0636\u063A\u0637 <b>\u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A</b>.</u>`,
-    deposit_small: `<b>\u0625\u064A\u062F\u0627\u0639 \u063A\u064A\u0631 \u0643\u0627\u0641</b>\n\n\u0645\u0643\u062A\u0634\u0641: <b>{amount}$</b>\n\u0627\u0644\u0645\u0637\u0644\u0648\u0628: ${depositStr('ar')}`,
-    not_registered: `<b>\u0644\u0645 \u064A\u062A\u0645 \u0627\u0643\u062A\u0634\u0627\u0641 \u0627\u0644\u062A\u0633\u062C\u064A\u0644</b>\n\n\u0627\u0633\u062A\u062E\u062F\u0645 \u0631\u0645\u0632 <b>${PROMO}</b>.`,
-    access_granted: `<b>\u2B50 VIP \u0645\u0646\u062D!</b>\n\n\u0627\u0636\u063A\u0637 \u0623\u062F\u0646\u0627\u0647:`,
-    already_registered: `<b>\uD83D\uDC10 \u062A\u062D\u0642\u0642 \u0645\u0646 \u0627\u0644\u0645\u0639\u0631\u0641</b>\n\n\u0623\u0631\u0633\u0644 \u0645\u0639\u0631\u0641 1Win.`,
-    already_registered_success: `<b>\u2705 \u062A\u0645 \u0627\u0644\u0631\u0628\u0637!</b>`,
-    already_registered_already: `\u0647\u0630\u0627 \u0627\u0644\u0645\u0639\u0631\u0641 \u0645\u0631\u0628\u0648\u0637 \u0628\u0627\u0644\u0641\u0639\u0644.`,
-    already_registered_notfound: `<b>\u063A\u064A\u0631 \u0645\u0648\u062C\u0648\u062F</b>\n\n\u0633\u062C\u0644 \u0628\u0631\u0645\u0632 <b>${PROMO}</b>.`,
-    language_changed: `\u2705 \u062A\u0645 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629`,
-    register_first: `\u0633\u062C\u0644 \u0623\u0648\u0644\u0627.`,
-    btn_register: `\u062A\u0633\u062C\u064A\u0644`,
-    btn_instructions: `\u0643\u064A\u0641 \u064A\u0639\u0645\u0644\u061F`,
-    btn_already: `\u0645\u0633\u062C\u0644 \u0645\u0633\u0628\u0642\u0627`,
-    btn_predictions: `\u26A1 \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A`,
+    select_language: `\uD83C\uDF0D \u0627\u062E\u062A\u0631 \u0644\u063A\u062A\u0643\nPlease select your language`,
+    channel_required: `\uD83D\uDCAC \u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0642\u0646\u0627\u062A\u0646\u0627 \u0627\u0644\u0631\u0633\u0645\u064A\u0629 \u0644\u0644\u0645\u062A\u0627\u0628\u0639\u0629.\n\n\u0627\u0628\u0642\u064E \u0645\u0637\u0644\u0639\u0627\u064B \u0628\u0623\u062D\u062F\u062B \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A \u0648\u0644\u0627 \u062A\u0641\u0648\u0651\u062A \u0623\u064A \u0641\u0631\u0635\u0629.`,
+    welcome: `<b>\u2728 \u0645\u0631\u062D\u0628\u0627\u064B \u0628\u0643 \u0641\u064A ROVAS\u2728</b>\n\n\u0645\u0633\u0627\u0639\u062F \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A \u0627\u0644\u0645\u0648\u062B\u0648\u0642 \u0628\u0647 \u0644\u062A\u0639\u0638\u064A\u0645 \u0623\u0631\u0628\u0627\u062D\u0643.\n\n<b>\uD83D\uDD39</b> \u0623\u0646\u0634\u0626 \u062D\u0633\u0627\u0628\u0643 \u0628\u0627\u0644\u0631\u0645\u0632 <b>${PROMO}</b>\n<b>\uD83D\uDD39</b> \u0623\u0648\u062F\u0639 \u062D\u062F \u0623\u062F\u0646\u0649 ${depositStr('ar')}\n<b>\uD83D\uDD39</b> \u0627\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A \u0627\u0644\u062D\u0635\u0631\u064A\u0629`,
+    instructions: `<b>\uD83D\uDCD6 \u062F\u0644\u064A\u0644 \u0633\u0631\u064A\u0639</b>\n\n\u0627\u062A\u0628\u0639 \u0647\u0630\u0647 \u0627\u0644\u062E\u0637\u0648\u0627\u062A \u0627\u0644\u062B\u0644\u0627\u062B \u0644\u0644\u0628\u062F\u0621:\n\n<b>1.</b> <b>\u0623\u0646\u0634\u0626 \u062D\u0633\u0627\u0628\u0643</b> \u0639\u0644\u0649 \u0627\u0644\u0645\u0646\u0635\u0629 \u0628\u0631\u0645\u0632 \u0627\u0644\u062A\u0631\u0648\u064A\u062C\u0629 <b>${PROMO}</b>\n<b>2.</b> <b>\u0634\u062D\u0646 \u062D\u0633\u0627\u0628\u0643</b> \u0628\u0645\u0628\u0644\u063A ${depositStr('ar')}\n<b>3.</b> <b>\u0627\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A \u0627\u0644\u0645\u0628\u0627\u0634\u0631\u0629</b> \u0648\u0627\u0628\u062F\u0623 \u0627\u0644\u0631\u0628\u062D`,
+    register: `<b>\uD83C\uDAF1 \u0627\u0644\u062E\u0637\u0648\u0629 1: \u0627\u0644\u062A\u0633\u062C\u064A\u0644</b>\n\n\u0627\u0636\u063A\u0637 \u0639\u0644\u0649 \u0627\u0644\u0632\u0631 \u0623\u062F\u0646\u0627\u0647 \u0644\u0625\u0646\u0634\u0627\u0621 \u062D\u0633\u0627\u0628\u0643.\n\n\u26A0\uFE0F \u064A\u062C\u0628 \u0627\u0633\u062A\u062E\u062F\u0627\u0645 \u0631\u0645\u0632 \u0627\u0644\u062A\u0631\u0648\u064A\u062C\u0629 \u0625\u0644\u0632\u0627\u0645\u064A\u0627\u064B: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 \u0627\u0644\u062E\u0637\u0648\u0629 2: \u0627\u0644\u0625\u064A\u062F\u0627\u0639</b>\n\n\u062A\u0645 \u062A\u0623\u0643\u064A\u062F \u062A\u0633\u062C\u064A\u0644\u0643 \u0628\u0646\u062C\u0627\u062D.\n\n\u0623\u0648\u062F\u0639 \u062D\u062F \u0623\u062F\u0646\u0649 ${depositStr('ar')}, \u062B\u0645 \u0639\u062F \u0648\u0627\u0636\u063A\u0637 \u0639\u0644\u0649 <b>\uD83C\uDFAF \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A</b>.`,
+    deposit_small: `<b>\u26A0\uFE0F \u0625\u064A\u062F\u0627\u0639 \u063A\u064A\u0631 \u0643\u0627\u0641\u064D</b>\n\n\u0627\u0644\u0645\u0643\u062A\u0634\u0641: <b>{amount}$</b>\n\u0627\u0644\u0645\u0637\u0644\u0648\u0628: ${depositStr('ar')}\n\n\u064A\u0631\u062C\u0649 \u0625\u0643\u0645\u0627\u0644 \u0625\u064A\u062F\u0627\u0639\u0643 \u0644\u0641\u062A\u062D \u0627\u0644\u0648\u0635\u0648\u0644.`,
+    not_registered: `<b>\uD83D\uDD0E \u0644\u0645 \u064A\u062A\u0645 \u0627\u0644\u0639\u062B\u0648\u0631 \u0639\u0644\u0649 \u0623\u064A \u062A\u0633\u062C\u064A\u0644</b>\n\n\u062A\u0623\u0643\u062F \u0645\u0646 \u0623\u0646\u0643 \u0627\u0633\u062A\u062E\u062F\u0645\u062A \u0631\u0645\u0632 \u0627\u0644\u062A\u0631\u0648\u064A\u062C\u0629 <b>${PROMO}</b> \u0639\u0646\u062F \u0627\u0644\u062A\u0633\u062C\u064A\u0644.\n\n\u0627\u0646\u062A\u0638\u0631 \u0628\u0639\u0636 \u0627\u0644\u062F\u0642\u0627\u0626\u0642 \u062B\u0645 \u062D\u0627\u0648\u0644 \u0645\u0631\u0629 \u0623\u062E\u0631\u0649.`,
+    access_granted: `<b>\uD83C\uDFC6 \u062A\u0645 \u0641\u062A\u062D \u0627\u0644\u0648\u0635\u0648\u0644 \u0627\u0644\u0645\u0645\u064A\u0632!</b>\n\n\u0645\u0628\u0631\u0648\u0643! \u062A\u0648\u0642\u0639\u0627\u062A\u0643 \u0627\u0644\u062D\u0635\u0631\u064A\u0629 \u0645\u062A\u0627\u062D\u0629 \u0627\u0644\u0622\u0646.`,
+    already_registered: `<b>\uD83D\uDCB0 \u0631\u0628\u0637 \u062D\u0633\u0627\u0628\u0643</b>\n\n\u0623\u0631\u0633\u0644 \u0645\u0639\u0631\u0641 1Win \u062E\u0627\u0635\u0629 \u0641\u064A \u0627\u0644\u0645\u062D\u0627\u062F\u062B\u0629 \u0644\u0631\u0628\u0637 \u062D\u0633\u0627\u0628\u0643.\n\n\u2139\uFE0F \u064A\u062C\u0628 \u0623\u0646 \u062A\u0643\u0648\u0646 \u0645\u0633\u062C\u0644\u0627\u064B \u0628\u0627\u0644\u0631\u0645\u0632 <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 \u062A\u0645 \u0631\u0628\u0637 \u0627\u0644\u062D\u0633\u0627\u0628 \u0628\u0646\u062C\u0627\u062D!</b>\n\n\u0645\u0639\u0631\u0641 1Win \u062E\u0627\u0635\u0629 \u0645\u062A\u0635\u0644 \u0627\u0644\u0622\u0646 \u0628\u0645\u0644\u0641\u0643 \u0639\u0644\u0649 Telegram.`,
+    already_registered_already: `\u0647\u0630\u0627 \u0627\u0644\u0645\u0639\u0631\u0641 \u0645\u0631\u0628\u0648\u0637 \u0628\u062D\u0633\u0627\u0628 \u0622\u062E\u0631 \u0628\u0627\u0644\u0641\u0639\u0644.`,
+    already_registered_notfound: `<b>\u274C \u0627\u0644\u0645\u0639\u0631\u0641 \u063A\u064A\u0631 \u0645\u0648\u062C\u0648\u062F</b>\n\n\u0623\u0646\u0634\u0626 \u062D\u0633\u0627\u0628\u0627\u064B \u0623\u0648\u0644\u0627\u064B \u0628\u0631\u0645\u0632 \u0627\u0644\u062A\u0631\u0648\u064A\u062C\u0629 <b>${PROMO}</b>.`,
+    language_changed: `\u2705 \u062A\u0645 \u062A\u062D\u062F\u064A\u062B \u0627\u0644\u0644\u063A\u0629`,
+    register_first: `\u064A\u0631\u062C\u0649 \u0627\u0644\u062A\u0633\u062C\u064A\u0644 \u0623\u0648\u0644\u0627\u064B.`,
+    btn_register: `\uD83C\uDAF1 \u062A\u0633\u062C\u064A\u0644`,
+    btn_instructions: `\uD83D\uDCD6 \u062F\u0644\u064A\u0644`,
+    btn_already: `\uD83D\uDCB0 \u0645\u0633\u062C\u0644 \u0645\u0633\u0628\u0642\u0627\u064B`,
+    btn_predictions: `\uD83C\uDFAF \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A`,
     btn_back: `\u2190 \u0631\u062C\u0648\u0639`,
-    btn_register_now: `\u0633\u062C\u0644 \u0627\u0644\u0622\u0646`,
-    btn_deposit: `\u0625\u064A\u062F\u0627\u0639`,
-    btn_join: `\u0627\u0646\u0636\u0645 \u0644\u0644\u0642\u0646\u0627\u0629`,
-    btn_language: `\u0627\u0644\u0644\u063A\u0629`,
-    btn_channel: `\u062A\u062D\u0642\u0642`,
-    btn_change_language: `\uD83C\uDF10 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629`,
-    deposit_insufficient_no: `<b>\u0625\u064A\u062F\u0627\u0639 \u0645\u0637\u0644\u0648\u0628</b>\n\n${depositStr('ar')} \u062D\u062F \u0623\u062F\u0646\u0649.`,
-    missing: `<b>\u064A\u0646\u0642\u0635\u0643 <b>{remaining}$</b> ({local})</b>`,
-    channel_required_alert: `\u0627\u0646\u0636\u0645 \u0644\u0644\u0642\u0646\u0627\u0629 \u0623\u0648\u0644\u0627.`
+    btn_register_now: `\u27A1\uFE0F \u0625\u0646\u0634\u0627\u0621 \u062D\u0633\u0627\u0628`,
+    btn_deposit: `\uD83D\uDCB3 \u0625\u064A\u062F\u0627\u0639`,
+    btn_join: `\uD83D\uDCAC \u0627\u0644\u0627\u0646\u0636\u0645\u0627\u0645 \u0644\u0644\u0642\u0646\u0627\u0629`,
+    btn_language: `\uD83C\uDF0D \u0627\u0644\u0644\u063A\u0629`,
+    btn_channel: `\u2705 \u0627\u0646\u0636\u0645\u064A\u062A`,
+    btn_change_language: `\uD83C\uDF0D \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 \u0625\u064A\u062F\u0627\u0639 \u0645\u0637\u0644\u0648\u0628</b>\n\n\u064A\u062A\u0637\u0644\u0628 \u0625\u064A\u062F\u0627\u0639 \u062D\u062F \u0623\u062F\u0646\u0649 ${depositStr('ar')} \u0644\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A.`,
+    missing: `<b>\uD83D\uDCE1 \u064A\u0646\u0642\u0635\u0643 <b>{remaining}$</b> ({local})</b>\n\n\u0623\u0643\u0645\u0644 \u0625\u064A\u062F\u0627\u0639\u0643 \u0644\u0641\u062A\u062D \u0627\u0644\u0648\u0635\u0648\u0644.`,
+    channel_required_alert: `\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0627\u0644\u0642\u0646\u0627\u0629 \u0627\u0644\u0631\u0633\u0645\u064A\u0629 \u0623\u0648\u0644\u0627\u064B.`
 };
 
 T.ru = {
-    select_language: `\uD83C\uDF10 \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u044F\u0437\u044B\u043A\nPlease select your language`,
-    channel_required: `\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043D\u0430\u0448\u0435\u043C\u0443 \u043A\u0430\u043D\u0430\u043B\u0443.`,
-    welcome: `<b>\uD83C\uDFB0 \u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 ROVAS</b>\n\n\u041B\u0443\u0447\u0448\u0438\u0439 \u0431\u043E\u0442 \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u043E\u0432 \u043A\u0430\u0437\u0438\u043D\u043E.\n\n<b>\u2776.</b> \u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>\n<b>\u2777.</b> \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}\n<b>\u2778.</b> \u0414\u043E\u0441\u0442\u0443\u043F \u043A VIP \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C`,
-    instructions: `<b>\u2753 \u041A\u0430\u043A \u044D\u0442\u043E \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442?</b>\n\n<b>\u2776.</b> <b>\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C</b> \u043D\u0430 1Win \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>\n<b>\u2777.</b> <b>\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435</b> \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}\n<b>\u2778.</b> <b>\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u0435</b> \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C`,
-    register: `<b>\uD83D\uDCDD \u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F</b>\n\n\u041D\u0430\u0436\u043C\u0438\u0442\u0435 \u043D\u0430 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0438\u0436\u0435.\n\n\u041F\u0440\u043E\u043C\u043E\u043A\u043E\u0434: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 \u0414\u0435\u043F\u043E\u0437\u0438\u0442 \u043D\u0443\u0436\u0435\u043D</b>\n\n\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430.\n\n\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}, \u0437\u0430\u0442\u0435\u043C <b>\u041F\u0440\u043E\u0433\u043D\u043E\u0437\u044B</b>.`,
-    deposit_small: `<b>\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E</b>\n\n\u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u043E: <b>{amount}$</b>\n\u041C\u0438\u043D\u0438\u043C\u0443\u043C: ${depositStr('ru')}`,
-    not_registered: `<b>\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u0430</b>\n\n\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434 <b>${PROMO}</b>.`,
-    access_granted: `<b>\u2B50 VIP \u0414\u043E\u0441\u0442\u0443\u043F!</b>\n\n\u041D\u0430\u0436\u043C\u0438\u0442\u0435 \u043D\u0438\u0436\u0435:`,
-    already_registered: `<b>\uD83D\uDC10 \u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 ID</b>\n\n\u041E\u0442\u043F\u0440\u0430\u0432\u044C\u0442\u0435 \u0432\u0430\u0448 1Win ID.`,
-    already_registered_success: `<b>\u2705 \u0410\u043A\u043A\u0430\u0443\u043D\u0442 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D!</b>`,
-    already_registered_already: `\u042D\u0442\u043E\u0442 ID \u0443\u0436\u0435 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D.`,
-    already_registered_notfound: `<b>ID \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D</b>\n\n\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>.`,
-    language_changed: `\u2705 \u042F\u0437\u044B\u043A \u0438\u0437\u043C\u0435\u043D\u0451\u043D`,
-    register_first: `\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C.`,
-    btn_register: `\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F`,
-    btn_instructions: `\u041A\u0430\u043A \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442?`,
-    btn_already: `\u0423\u0436\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D`,
-    btn_predictions: `\u26A1 \u041F\u0440\u043E\u0433\u043D\u043E\u0437\u044B`,
+    select_language: `\uD83C\uDF0D \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u044F\u0437\u044B\u043A\nPlease select your language`,
+    channel_required: `\uD83D\uDCAC \u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043D\u0430\u0448\u0435\u043C\u0443 \u043E\u0444\u0438\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u043A\u0430\u043D\u0430\u043B\u0443.\n\n\u0411\u0443\u0434\u044C\u0442\u0435 \u0432 \u043A\u0443\u0440\u0441\u0435 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u043E\u0432 \u0438 \u043D\u0435 \u043F\u0440\u043E\u043F\u0443\u0441\u0442\u0438\u0442\u0435 \u043D\u0438 \u043E\u0434\u043D\u0443 \u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E\u0441\u0442\u044C.`,
+    welcome: `<b>\u2728 \u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 ROVAS\u2728</b>\n\n\u0412\u0430\u0448 \u043D\u0430\u0434\u0451\u0436\u043D\u044B\u0439 \u043F\u043E\u043C\u043E\u0449\u043D\u0438\u043A \u043F\u043E \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C \u0434\u043B\u044F \u043C\u0430\u043A\u0441\u0438\u043C\u0438\u0437\u0430\u0446\u0438\u0438 \u0432\u0430\u0448\u0438\u0445 \u0432\u044B\u0438\u0433\u0440\u044B\u0448\u0435\u0439.\n\n<b>\uD83D\uDD39</b> \u0421\u043E\u0437\u0434\u0430\u0439\u0442\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442 \u0441 \u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>\n<b>\uD83D\uDD39</b> \u0412\u043D\u0435\u0441\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}\n<b>\uD83D\uDD39</b> \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u0435 \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u044D\u043A\u0441\u043A\u043B\u044E\u0437\u0438\u0432\u043D\u044B\u043C \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C`,
+    instructions: `<b>\uD83D\uDCD6 \u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0440\u0443\u043A\u043E\u0432\u043E\u0434\u0441\u0442\u0432\u043E</b>\n\n\u0412\u044B\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u044D\u0442\u0438 3 \u0448\u0430\u0433\u0430 \u0434\u043B\u044F \u043D\u0430\u0447\u0430\u043B\u0430:\n\n<b>1.</b> <b>\u0421\u043E\u0437\u0434\u0430\u0439\u0442\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442</b> \u043D\u0430 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0435 \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>\n<b>2.</b> <b>\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442</b> \u043D\u0430 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}\n<b>3.</b> <b>\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u0435 \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C</b> \u0432 \u0440\u0435\u0430\u043B\u044C\u043D\u043E\u043C \u0432\u0440\u0435\u043C\u0435\u043D\u0438 \u0438 \u043D\u0430\u0447\u043D\u0438\u0442\u0435 \u0432\u044B\u0438\u0433\u0440\u044B\u0432\u0430\u0442\u044C`,
+    register: `<b>\uD83C\uDAF1 \u0428\u0430\u0433 1: \u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F</b>\n\n\u041D\u0430\u0436\u043C\u0438\u0442\u0435 \u043D\u0430 \u043A\u043D\u043E\u043F\u043A\u0443 \u043D\u0438\u0436\u0435, \u0447\u0442\u043E\u0431\u044B \u0441\u043E\u0437\u0434\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442.\n\n\u26A0\uFE0F \u041E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u043E \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 \u0428\u0430\u0433 2: \u041F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u0430</b>\n\n\u0412\u0430\u0448\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430.\n\n\u0412\u043D\u0435\u0441\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}, \u0437\u0430\u0442\u0435\u043C \u0432\u0435\u0440\u043D\u0438\u0442\u0435\u0441\u044C \u0438 \u043D\u0430\u0436\u043C\u0438\u0442\u0435 <b>\uD83C\uDFAF \u041F\u0440\u043E\u0433\u043D\u043E\u0437\u044B</b>.`,
+    deposit_small: `<b>\u26A0\uFE0F \u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u044B\u0439 \u0434\u0435\u043F\u043E\u0437\u0438\u0442</b>\n\n\u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u043E: <b>{amount}$</b>\n\u0422\u0440\u0435\u0431\u0443\u0435\u043C\u043E\u0435: ${depositStr('ru')}\n\n\u041F\u043E\u0436\u0430\u043B\u0443\u0439\u0441\u0442\u0430, \u043F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0434\u0435\u043F\u043E\u0437\u0438\u0442 \u0434\u043B\u044F \u0440\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0438 \u0434\u043E\u0441\u0442\u0443\u043F\u0430.`,
+    not_registered: `<b>\uD83D\uDD0E \u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u0430</b>\n\n\u0423\u0431\u0435\u0434\u0438\u0442\u0435\u0441\u044C, \u0447\u0442\u043E \u0432\u044B \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043B\u0438 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434 <b>${PROMO}</b> \u043F\u0440\u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.\n\n\u041F\u043E\u0434\u043E\u0436\u0434\u0438\u0442\u0435 \u043D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E \u043C\u0438\u043D\u0443\u0442 \u0438 \u043F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0441\u043D\u043E\u0432\u0430.`,
+    access_granted: `<b>\uD83C\uDFC6 VIP \u0414\u043E\u0441\u0442\u0443\u043F \u0420\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043D!</b>\n\n\u041F\u043E\u0437\u0434\u0440\u0430\u0432\u043B\u044F\u0435\u043C! \u0412\u0430\u0448\u0438 \u044D\u043A\u0441\u043A\u043B\u044E\u0437\u0438\u0432\u043D\u044B\u0435 \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u044B \u0442\u0435\u043F\u0435\u0440\u044C \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B.`,
+    already_registered: `<b>\uD83D\uDCB0 \u041F\u0440\u0438\u0432\u044F\u0437\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442</b>\n\n\u041E\u0442\u043F\u0440\u0430\u0432\u044C\u0442\u0435 \u0432\u0430\u0448 ID 1Win \u0432 \u0447\u0430\u0442 \u0434\u043B\u044F \u043F\u0440\u0438\u0432\u044F\u0437\u043A\u0438 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u0430.\n\n\u2139\uFE0F \u0412\u044B \u0434\u043E\u043B\u0436\u043D\u044B \u0431\u044B\u0442\u044C \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D\u044B \u0441 \u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 \u0410\u043A\u043A\u0430\u0443\u043D\u0442 \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D!</b>\n\n\u0412\u0430\u0448 ID 1Win \u0442\u0435\u043F\u0435\u0440\u044C \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0451\u043D \u043A \u0432\u0430\u0448\u0435\u043C\u0443 \u043F\u0440\u043E\u0444\u0438\u043B\u044E Telegram.`,
+    already_registered_already: `\u042D\u0442\u043E\u0442 ID \u0443\u0436\u0435 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u0434\u0440\u0443\u0433\u043E\u043C\u0443 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u0443.`,
+    already_registered_notfound: `<b>\u274C ID \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D</b>\n\n\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0441\u043E\u0437\u0434\u0430\u0439\u0442\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442 \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>.`,
+    language_changed: `\u2705 \u042F\u0437\u044B\u043A \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D`,
+    register_first: `\u041F\u043E\u0436\u0430\u043B\u0443\u0439\u0441\u0442\u0430, \u0441\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C.`,
+    btn_register: `\uD83C\uDAF1 \u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F`,
+    btn_instructions: `\uD83D\uDCD6 \u0420\u0443\u043A\u043E\u0432\u043E\u0434\u0441\u0442\u0432\u043E`,
+    btn_already: `\uD83D\uDCB0 \u0423\u0436\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D`,
+    btn_predictions: `\uD83C\uDFAF \u041F\u0440\u043E\u0433\u043D\u043E\u0437\u044B`,
     btn_back: `\u2190 \u041D\u0430\u0437\u0430\u0434`,
-    btn_register_now: `\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C\u0441\u044F`,
-    btn_deposit: `\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C`,
-    btn_join: `\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F`,
-    btn_language: `\u042F\u0437\u044B\u043A`,
-    btn_channel: `\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C`,
-    btn_change_language: `\uD83C\uDF10 \u0421\u043C\u0435\u043D\u0438\u0442\u044C \u044F\u0437\u044B\u043A`,
-    deposit_insufficient_no: `<b>\u0414\u0435\u043F\u043E\u0437\u0438\u0442 \u043D\u0443\u0436\u0435\u043D</b>\n\n\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}.`,
-    missing: `<b>\u0412\u0430\u043C \u043D\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 <b>{remaining}$</b> ({local})</b>`,
-    channel_required_alert: `\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043A\u0430\u043D\u0430\u043B\u0443.`
+    btn_register_now: `\u27A1\uFE0F \u0421\u043E\u0437\u0434\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442`,
+    btn_deposit: `\uD83D\uDCB3 \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C`,
+    btn_join: `\uD83D\uDCAC \u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F`,
+    btn_language: `\uD83C\uDF0D \u042F\u0437\u044B\u043A`,
+    btn_channel: `\u2705 \u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u043B\u0441\u044F`,
+    btn_change_language: `\uD83C\uDF0D \u0421\u043C\u0435\u043D\u0438\u0442\u044C \u044F\u0437\u044B\u043A`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 \u0414\u0435\u043F\u043E\u0437\u0438\u0442 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C</b>\n\n\u0414\u043B\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u0430 \u043A \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C \u0442\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F \u043C\u0438\u043D\u0438\u043C\u0430\u043B\u044C\u043D\u044B\u0439 \u0434\u0435\u043F\u043E\u0437\u0438\u0442 ${depositStr('ru')}.`,
+    missing: `<b>\uD83D\uDCE1 \u0412\u0430\u043C \u043D\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 <b>{remaining}$</b> ({local})</b>\n\n\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0434\u0435\u043F\u043E\u0437\u0438\u0442 \u0434\u043B\u044F \u0440\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0438 \u0434\u043E\u0441\u0442\u0443\u043F\u0430.`,
+    channel_required_alert: `\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043E\u0444\u0438\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u043A\u0430\u043D\u0430\u043B\u0443.`
 };
 
 T.pt = {
-    select_language: `\uD83C\uDF10 Selecione seu idioma\nPlease select your language`,
-    channel_required: `Junte-se ao nosso canal para continuar.`,
-    welcome: `<b>\uD83C\uDFB0 Bem-vindo ao ROVAS</b>\n\nO melhor bot de previsoes casino.\n\n<b>\u2776.</b> Registre-se com o codigo <b>${PROMO}</b>\n<b>\u2777.</b> Deposite minimo ${depositStr('pt')}\n<b>\u2778.</b> Acesse previsoes VIP`,
-    instructions: `<b>\u2753 Como funciona?</b>\n\n<b>\u2776.</b> <b>Registre-se</b> no 1Win com codigo <b>${PROMO}</b>\n<b>\u2777.</b> <b>Deposite</b> minimo ${depositStr('pt')}\n<b>\u2778.</b> <b>Acesse</b> previsoes ao vivo`,
-    register: `<b>\uD83D\uDCDD Registro</b>\n\nClique no link abaixo para registrar.\n\nCodigo: <b>${PROMO}</b>`,
-    deposit: `<b>\uD83D\uDCB0 Deposito necessario</b>\n\nRegistro confirmado.\n\nDeposite minimo ${depositStr('pt')} depois clique em <b>Previsoes</b>.`,
-    deposit_small: `<b>Deposito insuficiente</b>\n\nDetectado: <b>{amount}$</b>\nRequerido: ${depositStr('pt')}`,
-    not_registered: `<b>Registro nao detectado</b>\n\nUse codigo <b>${PROMO}</b>.`,
-    access_granted: `<b>\u2B50 VIP Concedido!</b>\n\nClique abaixo:`,
-    already_registered: `<b>\uD83D\uDC10 Verificacao ID</b>\n\nEnvie seu ID 1Win.`,
-    already_registered_success: `<b>\u2705 Conta vinculada!</b>`,
-    already_registered_already: `Este ID ja esta vinculado.`,
-    already_registered_notfound: `<b>ID nao encontrado</b>\n\nRegistre com codigo <b>${PROMO}</b>.`,
-    language_changed: `\u2705 Idioma alterado`,
-    register_first: `Registre-se primeiro.`,
-    btn_register: `Registrar`,
-    btn_instructions: `Como funciona?`,
-    btn_already: `Ja registrado`,
-    btn_predictions: `\u26A1 Previsoes`,
+    select_language: `\uD83C\uDF0D Selecione seu idioma\nPlease select your language`,
+    channel_required: `\uD83D\uDCAC Junte-se ao nosso canal oficial para continuar.\n\nMantenha-se atualizado com as ultimas previsoes e nao perca nenhuma oportunidade.`,
+    welcome: `<b>\u2728 Bem-vindo ao ROVAS\u2728</b>\n\nSeu assistente de previsoes de confianca para maximizar seus ganhos.\n\n<b>\uD83D\uDD39</b> Crie sua conta com o codigo <b>${PROMO}</b>\n<b>\uD83D\uDD39</b> Deposite um minimo de ${depositStr('pt')}\n<b>\uD83D\uDD39</b> Acesse previsoes exclusivas`,
+    instructions: `<b>\uD83D\uDCD6 Guia rapido</b>\n\nSiga estes 3 passos para comecar:\n\n<b>1.</b> <b>Crie sua conta</b> na plataforma com o codigo promocional <b>${PROMO}</b>\n<b>2.</b> <b>Financie sua conta</b> com pelo menos ${depositStr('pt')}\n<b>3.</b> <b>Acesse previsoes ao vivo</b> e comece a ganhar`,
+    register: `<b>\uD83C\uDAF1 Passo 1: Registro</b>\n\nClique no botao abaixo para criar sua conta.\n\n\u26A0\uFE0F Voce deve usar obrigatoriamente o codigo promocional: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB3 Passo 2: Financiar sua conta</b>\n\nSeu registro foi confirmado com sucesso.\n\nFaca um deposito minimo de ${depositStr('pt')}, depois volte e clique em <b>\uD83C\uDFAF Previsoes</b>.`,
+    deposit_small: `<b>\u26A0\uFE0F Deposito incompleto</b>\n\nDetectado: <b>{amount}$</b>\nRequerido: ${depositStr('pt')}\n\nPor favor, complete seu deposito para desbloquear o acesso.`,
+    not_registered: `<b>\uD83D\uDD0E Nenhum registro encontrado</b>\n\nVerifique se voce usou o codigo promocional <b>${PROMO}</b> ao se registrar.\n\nAguarde alguns minutos e tente novamente.`,
+    access_granted: `<b>\uD83C\uDFC6 Acesso VIP Desbloqueado!</b>\n\nParabens! Suas previsoes exclusivas agora estao disponiveis.`,
+    already_registered: `<b>\uD83D\uDCB0 Vincular sua conta</b>\n\nEnvie seu ID 1Win no chat para vincular sua conta.\n\n\u2139\uFE0F Voce deve estar registrado com o codigo <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 Conta vinculada com sucesso!</b>\n\nSeu ID 1Win agora esta conectado ao seu perfil do Telegram.`,
+    already_registered_already: `Este ID ja esta vinculado a outra conta.`,
+    already_registered_notfound: `<b>\u274C ID nao encontrado</b>\n\nCrie primeiro uma conta com o codigo promocional <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Idioma atualizado`,
+    register_first: `Por favor, registre-se primeiro.`,
+    btn_register: `\uD83C\uDAF1 Registro`,
+    btn_instructions: `\uD83D\uDCD6 Guia`,
+    btn_already: `\uD83D\uDCB0 Ja registrado`,
+    btn_predictions: `\uD83C\uDFAF Previsoes`,
     btn_back: `\u2190 Voltar`,
-    btn_register_now: `Registrar agora`,
-    btn_deposit: `Depositar`,
-    btn_join: `Entrar no canal`,
-    btn_language: `Idioma`,
-    btn_channel: `Verificar`,
-    btn_change_language: `\uD83C\uDF10 Mudar idioma`,
-    deposit_insufficient_no: `<b>Deposito necessario</b>\n\nDeposite minimo ${depositStr('pt')}.`,
-    missing: `<b>Faltam <b>{remaining}$</b> ({local})</b>`,
-    channel_required_alert: `Entre no canal primeiro.`
+    btn_register_now: `\u27A1\uFE0F Criar conta`,
+    btn_deposit: `\uD83D\uDCB3 Depositar`,
+    btn_join: `\uD83D\uDCAC Entrar no canal`,
+    btn_language: `\uD83C\uDF0D Idioma`,
+    btn_channel: `\u2705 Entrei`,
+    btn_change_language: `\uD83C\uDF0D Mudar idioma`,
+    deposit_insufficient_no: `<b>\uD83D\uDCB3 Deposito necessario</b>\n\nE necessario um deposito minimo de ${depositStr('pt')} para acessar as previsoes.`,
+    missing: `<b>\uD83D\uDCE1 Voce precisa de mais <b>{remaining}$</b> ({local})</b>\n\nComplete seu deposito para desbloquear o acesso.`,
+    channel_required_alert: `Junte-se ao canal oficial primeiro.`
 };
+
 
 // ═══════════════════════════════════════════════════════
 // HELPERS - Un seul message a la fois
@@ -621,12 +622,12 @@ async function showChannelRequired(chatId, userId, lang, msgId) {
 
 async function showMainMenu(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
-    await sendNew(chatId, userId, t('welcome', lang), menuButtons(lang), 'default');
+    await sendNew(chatId, userId, t('welcome', lang), menuButtons(lang));
 }
 
 async function sendVIPMessage(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
-    await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang), 'vip');
+    await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang));
 }
 
 // ═══════════════════════════════════════════════════════
@@ -647,14 +648,14 @@ async function handleText(chatId, from, text) {
         if (found.length === 0) {
             // ID not found in DB
             await sendNew(chatId, from.id, t('already_registered_notfound', lang),
-                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)], 'register');
+                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)]);
             return;
         }
 
         const u = found[0];
         if (u.telegram_id && String(u.telegram_id) !== String(from.id)) {
             // Already linked to another Telegram
-            await sendNew(chatId, from.id, t('already_registered_already', lang), [backButton(lang)], 'default');
+            await sendNew(chatId, from.id, t('already_registered_already', lang), [backButton(lang)]);
             return;
         }
 
@@ -677,7 +678,7 @@ async function handleText(chatId, from, text) {
 
         if (updated.is_registered && hasValidDeposit(updated)) {
             // All good - VIP access
-            await sendNew(chatId, from.id, t('already_registered_success', lang), vipButtons(from.id, lang), 'default');
+            await sendNew(chatId, from.id, t('already_registered_success', lang), vipButtons(from.id, lang));
         } else if (updated.is_registered) {
             // Registered but no deposit or insufficient
             const dep = parseFloat(updated.deposit_amount) || 0;
@@ -689,14 +690,14 @@ async function handleText(chatId, from, text) {
                     t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
                     t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
                 await sendNew(chatId, from.id, msg,
-                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)], 'deposit');
+                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)]);
             } else {
                 await sendNew(chatId, from.id, t('already_registered_success', lang) + '\n\n' + t('deposit', lang),
-                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)], 'deposit');
+                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)]);
             }
         } else {
             await sendNew(chatId, from.id, t('register', lang),
-                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)], 'register');
+                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)]);
         }
     }
 }
@@ -754,7 +755,7 @@ async function handleUpdate(update) {
                 } else {
                     await countReferralIfNeeded(from.id);
                     if (user.is_registered && hasValidDeposit(user)) {
-                        await sendNew(chatId, from.id, t('access_granted', user.language), vipButtons(from.id, user.language), 'vip');
+                        await sendNew(chatId, from.id, t('access_granted', user.language), vipButtons(from.id, user.language));
                     } else {
                         await showMainMenu(chatId, from.id, user.language, null);
                     }
@@ -836,7 +837,7 @@ async function handleUpdate(update) {
             if (data === 'instructions') {
                 await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
                 await deleteMsg(chatId, msgId);
-                await sendNew(chatId, userId, t('instructions', lang), [backButton(lang)], 'instructions');
+                await sendNew(chatId, userId, t('instructions', lang), [backButton(lang)]);
                 return;
             }
 
@@ -845,7 +846,7 @@ async function handleUpdate(update) {
                 await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
                 await deleteMsg(chatId, msgId);
                 await sendNew(chatId, userId, t('register', lang),
-                    [[{ text: t('btn_register_now', lang), url: regLink(userId) }], [{ text: t('btn_back', lang), callback_data: 'back' }]], 'register');
+                    [[{ text: t('btn_register_now', lang), url: regLink(userId) }], [{ text: t('btn_back', lang), callback_data: 'back' }]]);
                 return;
             }
 
@@ -854,7 +855,7 @@ async function handleUpdate(update) {
                 await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
                 await setTempState(userId, 'already_registered');
                 await deleteMsg(chatId, msgId);
-                await sendNew(chatId, userId, t('already_registered', lang), [backButton(lang)], 'default');
+                await sendNew(chatId, userId, t('already_registered', lang), [backButton(lang)]);
                 return;
             }
 
@@ -881,7 +882,7 @@ async function handleUpdate(update) {
                     }
                     await deleteMsg(chatId, msgId);
                     await sendNew(chatId, userId, msg,
-                        [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)], 'deposit');
+                        [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)]);
                 } else {
                     await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
                     await sendVIPMessage(chatId, userId, lang, msgId);

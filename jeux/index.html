@@ -16,18 +16,18 @@
 html,body{touch-action:pan-x pan-y!important;overscroll-behavior:none}
 
 :root{
-  --dvys-bg-primary:#000a14;
-  --dvys-bg-secondary:#001020;
-  --dvys-accent:#00c8ff;
-  --dvys-accent-dark:#0099cc;
-  --dvys-accent-light:#66e0ff;
-  --dvys-glass:rgba(0,200,255,0.08);
-  --dvys-glass-border:rgba(0,200,255,0.12);
-  --dvys-text:#ffffff;
-  --dvys-text-muted:#5a7a8f;
-  --dvys-green:#00e676;
-  --dvys-red:#ff5252;
-  --dvys-orange:#ff9500;
+  --dvys-bg-primary:#0a1628;
+  --dvys-bg-secondary:#0f1f3a;
+  --dvys-accent:#38bdf8;
+  --dvys-accent-dark:#0284c7;
+  --dvys-accent-light:#7dd3fc;
+  --dvys-glass:rgba(56,189,248,0.08);
+  --dvys-glass-border:rgba(56,189,248,0.15);
+  --dvys-text:#f0f9ff;
+  --dvys-text-muted:#7b93ab;
+  --dvys-green:#34d399;
+  --dvys-red:#f87171;
+  --dvys-orange:#fbbf24;
 }
 
 body{
@@ -43,9 +43,9 @@ body{
 body::before{
   content:'';position:fixed;inset:0;
   background:
-    radial-gradient(ellipse 600px 400px at 20% 10%,rgba(0,200,255,0.06) 0%,transparent 70%),
-    radial-gradient(ellipse 500px 500px at 80% 90%,rgba(0,200,255,0.04) 0%,transparent 70%),
-    radial-gradient(ellipse 300px 300px at 50% 50%,rgba(0,200,255,0.02) 0%,transparent 70%);
+    radial-gradient(ellipse 600px 400px at 20% 10%,rgba(56,189,248,0.06) 0%,transparent 70%),
+    radial-gradient(ellipse 500px 500px at 80% 90%,rgba(56,189,248,0.04) 0%,transparent 70%),
+    radial-gradient(ellipse 300px 300px at 50% 50%,rgba(56,189,248,0.02) 0%,transparent 70%);
   animation:dvys-bgDrift 25s ease-in-out infinite alternate;
   pointer-events:none;z-index:0;
 }
@@ -75,8 +75,8 @@ body::before{
   position:sticky;top:0;z-index:100;
   backdrop-filter:blur(24px) saturate(180%);
   -webkit-backdrop-filter:blur(24px) saturate(180%);
-  background:rgba(0,10,20,0.8);
-  border-bottom:1px solid rgba(0,200,255,0.08);
+  background:rgba(10,22,40,0.8);
+  border-bottom:1px solid rgba(56,189,248,0.08);
   padding:14px 20px;
   display:flex;align-items:center;justify-content:space-between;
   animation:dvys-slideDown 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
@@ -87,7 +87,7 @@ body::before{
 }
 
 .dvys-header-left{display:flex;align-items:center;gap:12px}
-.dvys-logo-img{width:36px;height:36px;border-radius:10px;object-fit:cover;border:2px solid rgba(0,200,255,0.25);}
+.dvys-logo-img{width:36px;height:36px;border-radius:10px;object-fit:cover;border:2px solid rgba(56,189,248,0.25);}
 .dvys-header-brand{display:flex;flex-direction:column}
 .dvys-brand-name{
   font-size:1.15rem;font-weight:900;
@@ -100,12 +100,12 @@ body::before{
 .dvys-header-right{display:flex;align-items:center;gap:12px}
 .dvys-info-btn{
   width:36px;height:36px;border-radius:50%;
-  background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.15);
+  background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.15);
   color:var(--dvys-accent);font-size:16px;font-weight:700;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:all 0.3s;
 }
-.dvys-info-btn:hover{background:rgba(0,200,255,0.15);border-color:rgba(0,200,255,0.3)}
+.dvys-info-btn:hover{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.3)}
 
 /* HERO */
 .dvys-hero{
@@ -130,7 +130,7 @@ body::before{
 }
 .dvys-loading-spinner{
   width:40px;height:40px;
-  border:3px solid rgba(0,200,255,0.15);
+  border:3px solid rgba(56,189,248,0.15);
   border-top-color:var(--dvys-accent);
   border-radius:50%;
   animation:spin 0.8s linear infinite;
@@ -158,8 +158,8 @@ body::before{
   display:block;
   border-radius:16px;
   overflow:hidden;
-  background:linear-gradient(145deg,rgba(0,200,255,0.06),rgba(0,20,40,0.8));
-  border:1px solid rgba(0,200,255,0.1);
+  background:linear-gradient(145deg,rgba(56,189,248,0.06),rgba(15,31,58,0.8));
+  border:1px solid rgba(56,189,248,0.1);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
   text-decoration:none;
@@ -173,19 +173,19 @@ body::before{
 .dvys-card:active{transform:scale(0.96)}
 .dvys-card:hover{
   transform:translateY(-4px) scale(1.02);
-  border-color:rgba(0,200,255,0.25);
-  box-shadow:0 8px 30px rgba(0,200,255,0.1),0 4px 20px rgba(0,0,0,0.3);
+  border-color:rgba(56,189,248,0.25);
+  box-shadow:0 8px 30px rgba(56,189,248,0.1),0 4px 20px rgba(0,0,0,0.3);
 }
 
 .dvys-card-img{
   width:100%;overflow:hidden;position:relative;
-  background:#001020;
+  background:#0f1f3a;
 }
 .dvys-card-img img{width:100%;height:auto;display:block;object-fit:contain;transition:transform 0.4s}
 .dvys-card:hover .dvys-card-img img{transform:scale(1.05)}
 .dvys-card-overlay{
   position:absolute;inset:0;
-  background:linear-gradient(180deg,transparent 50%,rgba(0,10,20,0.6) 100%);
+  background:linear-gradient(180deg,transparent 50%,rgba(10,22,40,0.6) 100%);
   pointer-events:none;
 }
 
@@ -213,7 +213,7 @@ body::before{
   filter:brightness(0.65);
 }
 .dvys-card.locked .dvys-card-overlay{
-  background:rgba(0,10,20,0.25);
+  background:rgba(10,22,40,0.25);
 }
 .dvys-card.locked .dvys-card-badge{
   background:linear-gradient(135deg,#555,#777);
@@ -269,12 +269,12 @@ body::before{
 }
 .dvys-modal-overlay.show{display:flex}
 .dvys-modal{
-  background:linear-gradient(145deg,#001020,#000a14);
-  border:1px solid rgba(0,200,255,0.15);
+  background:linear-gradient(145deg,#0f1f3a,#0a1628);
+  border:1px solid rgba(56,189,248,0.15);
   border-radius:24px;padding:28px 24px;
   max-width:380px;width:92%;
   animation:dvys-modalPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-  box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(0,200,255,0.05);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(56,189,248,0.05);
   max-height:90vh;overflow-y:auto;
 }
 @keyframes dvys-modalPop{
@@ -290,14 +290,14 @@ body::before{
 .dvys-modal p{font-size:0.82rem;color:var(--dvys-text-muted);line-height:1.6;margin-bottom:16px}
 .dvys-modal-close{
   width:100%;padding:14px;
-  border:1px solid rgba(0,200,255,0.2);
+  border:1px solid rgba(56,189,248,0.2);
   border-radius:14px;
-  background:rgba(0,200,255,0.08);
+  background:rgba(56,189,248,0.08);
   color:var(--dvys-accent);
   font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;
   cursor:pointer;transition:all 0.3s;
 }
-.dvys-modal-close:hover{background:rgba(0,200,255,0.15)}
+.dvys-modal-close:hover{background:rgba(56,189,248,0.15)}
 
 /* INFO MENU BUTTONS */
 .dvys-info-menu{
@@ -308,25 +308,25 @@ body::before{
   display:flex;align-items:center;gap:14px;
   padding:14px 16px;
   border-radius:14px;
-  background:rgba(0,200,255,0.05);
-  border:1px solid rgba(0,200,255,0.1);
+  background:rgba(56,189,248,0.05);
+  border:1px solid rgba(56,189,248,0.1);
   cursor:pointer;
   transition:all 0.25s;
   text-align:left;
 }
 .dvys-info-btn-item:hover{
-  background:rgba(0,200,255,0.1);
-  border-color:rgba(0,200,255,0.2);
+  background:rgba(56,189,248,0.1);
+  border-color:rgba(56,189,248,0.2);
 }
 .dvys-info-btn-item.active{
-  background:rgba(0,200,255,0.08);
-  border-color:rgba(0,200,255,0.25);
+  background:rgba(56,189,248,0.08);
+  border-color:rgba(56,189,248,0.25);
 }
 .dvys-info-btn-icon{
   width:40px;height:40px;min-width:40px;
   border-radius:12px;
-  background:rgba(0,200,255,0.1);
-  border:1px solid rgba(0,200,255,0.15);
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.15);
   display:flex;align-items:center;justify-content:center;
 }
 .dvys-info-btn-icon svg{
@@ -361,8 +361,8 @@ body::before{
   display:none;
   padding:16px;
   border-radius:14px;
-  background:rgba(0,200,255,0.03);
-  border:1px solid rgba(0,200,255,0.08);
+  background:rgba(56,189,248,0.03);
+  border:1px solid rgba(56,189,248,0.08);
   margin-top:-6px;
   margin-bottom:10px;
   animation:dvys-panelSlide 0.3s ease both;
@@ -388,8 +388,8 @@ body::before{
 .dvys-promo{
   display:inline-block;
   padding:10px 24px;
-  background:linear-gradient(135deg,rgba(0,200,255,0.15),rgba(0,200,255,0.05));
-  border:2px dashed rgba(0,200,255,0.3);
+  background:linear-gradient(135deg,rgba(56,189,248,0.15),rgba(56,189,248,0.05));
+  border:2px dashed rgba(56,189,248,0.3);
   border-radius:14px;
   font-size:1.3rem;font-weight:900;
   color:var(--dvys-accent);
@@ -404,12 +404,12 @@ body::before{
 
 /* LOCK MODAL - clean cyan theme */
 .dvys-lock-modal{
-  background:linear-gradient(145deg,#001020,#000a14);
-  border:1px solid rgba(0,200,255,0.15);
+  background:linear-gradient(145deg,#0f1f3a,#0a1628);
+  border:1px solid rgba(56,189,248,0.15);
   border-radius:24px;padding:28px 24px;
   max-width:380px;width:92%;text-align:center;
   animation:dvys-modalPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-  box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(0,200,255,0.05);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(56,189,248,0.05);
   max-height:90vh;overflow-y:auto;
 }
 .dvys-lock-modal h2{
@@ -431,8 +431,8 @@ body::before{
 
 /* Referral link box */
 .dvys-referral-box{
-  background:rgba(0,200,255,0.06);
-  border:1.5px dashed rgba(0,200,255,0.25);
+  background:rgba(56,189,248,0.06);
+  border:1.5px dashed rgba(56,189,248,0.25);
   border-radius:12px;
   padding:12px 14px;
   margin-top:10px;
@@ -451,8 +451,8 @@ body::before{
 .dvys-copy-btn{
   padding:8px 14px;
   border-radius:8px;
-  border:1px solid rgba(0,200,255,0.25);
-  background:rgba(0,200,255,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  background:rgba(56,189,248,0.1);
   color:var(--dvys-accent);
   font-size:0.72rem;
   font-weight:700;
@@ -461,10 +461,10 @@ body::before{
   white-space:nowrap;
   font-family:'Inter',sans-serif;
 }
-.dvys-copy-btn:hover{background:rgba(0,200,255,0.2)}
+.dvys-copy-btn:hover{background:rgba(56,189,248,0.2)}
 .dvys-copy-btn.copied{
-  background:rgba(0,230,118,0.15);
-  border-color:rgba(0,230,118,0.3);
+  background:rgba(52,211,153,0.15);
+  border-color:rgba(52,211,153,0.3);
   color:var(--dvys-green);
 }
 
@@ -494,8 +494,8 @@ body::before{
 
 /* CTA share text box */
 .dvys-cta-box{
-  background:rgba(0,200,255,0.06);
-  border:1.5px solid rgba(0,200,255,0.18);
+  background:rgba(56,189,248,0.06);
+  border:1.5px solid rgba(56,189,248,0.18);
   border-radius:12px;
   padding:12px 14px;
   margin-top:12px;
@@ -521,8 +521,8 @@ body::before{
 
 /* How it works info box */
 .dvys-info-box{
-  background:rgba(0,200,255,0.04);
-  border:1px solid rgba(0,200,255,0.1);
+  background:rgba(56,189,248,0.04);
+  border:1px solid rgba(56,189,248,0.1);
   border-radius:12px;
   padding:14px 16px;
   margin-top:16px;
@@ -546,7 +546,7 @@ body::before{
 .dvys-info-box .step-num{
   width:20px;height:20px;min-width:20px;
   border-radius:50%;
-  background:rgba(0,200,255,0.12);
+  background:rgba(56,189,248,0.12);
   color:var(--dvys-accent);
   font-size:0.65rem;font-weight:800;
   display:flex;align-items:center;justify-content:center;
@@ -556,15 +556,15 @@ body::before{
 /* Close button for lock modal */
 .dvys-lock-modal-close{
   width:100%;padding:16px;
-  border:1px solid rgba(0,200,255,0.2);
+  border:1px solid rgba(56,189,248,0.2);
   border-radius:14px;
-  background:rgba(0,200,255,0.08);
+  background:rgba(56,189,248,0.08);
   color:var(--dvys-accent);
   font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;
   cursor:pointer;transition:all 0.3s;
   margin-top:16px;
 }
-.dvys-lock-modal-close:hover{background:rgba(0,200,255,0.15)}
+.dvys-lock-modal-close:hover{background:rgba(56,189,248,0.15)}
 
 /* Deposit info box */
 .dvys-deposit-info{
@@ -574,12 +574,12 @@ body::before{
   margin-top:12px;
 }
 .dvys-deposit-info.remaining{
-  background:rgba(255,149,0,0.08);
-  border:1px solid rgba(255,149,0,0.2);
+  background:rgba(251,191,36,0.08);
+  border:1px solid rgba(251,191,36,0.2);
 }
 .dvys-deposit-info.needed{
-  background:rgba(0,200,255,0.06);
-  border:1px solid rgba(0,200,255,0.15);
+  background:rgba(56,189,248,0.06);
+  border:1px solid rgba(56,189,248,0.15);
 }
 
 /* FIXED BADGE */
@@ -587,7 +587,7 @@ body::before{
   position:fixed;bottom:16px;right:16px;
   padding:6px 14px;border-radius:20px;
   backdrop-filter:blur(16px);
-  background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.12);
+  background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.12);
   font-size:0.6rem;font-weight:700;color:var(--dvys-accent);
   letter-spacing:1.5px;z-index:100;
   animation:dvys-badgeFloat 3s ease-in-out infinite;

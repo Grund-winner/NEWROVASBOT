@@ -705,7 +705,7 @@ body::after {
 }
 
 .get-signal-btn {
-    background: linear-gradient(145deg, #3498db, #2980b9);
+    background: linear-gradient(145deg, #38bdf8, #0284c7);
     color: white;
     border: 3px solid transparent;
     padding: 20px 40px;
@@ -715,7 +715,7 @@ body::after {
     cursor: pointer;
     transition: all 0.4s ease;
     box-shadow: 
-        0 8px 25px rgba(52, 152, 219, 0.4),
+        0 8px 25px rgba(56, 189, 248, 0.4),
         inset 0 2px 0 rgba(255, 255, 255, 0.2);
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -737,9 +737,9 @@ body::after {
 .get-signal-btn:hover {
     transform: translateY(-4px);
     box-shadow: 
-        0 12px 35px rgba(52, 152, 219, 0.6),
+        0 12px 35px rgba(56, 189, 248, 0.6),
         inset 0 2px 0 rgba(255, 255, 255, 0.3);
-    background: linear-gradient(145deg, #5dade2, #3498db);
+    background: linear-gradient(145deg, #7dd3fc, #38bdf8);
 }
 
 .get-signal-btn:hover::before {

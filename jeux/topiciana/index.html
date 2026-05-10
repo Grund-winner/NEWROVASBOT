@@ -14,19 +14,19 @@ html,body{touch-action:pan-x pan-y!important;-ms-touch-action:pan-x pan-y!import
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --rovas-bg: #000a14;
-  --rovas-bg2: #001020;
-  --rovas-cyan: #00c8ff;
-  --rovas-cyan-dark: #0099cc;
-  --rovas-cyan-light: #66e0ff;
-  --rovas-glass: rgba(0,200,255,0.08);
-  --rovas-glass-light: rgba(0,200,255,0.15);
-  --rovas-glass-border: rgba(0,200,255,0.12);
-  --rovas-text: #ffffff;
-  --rovas-text-muted: #7b8da4;
-  --rovas-green: #00e676;
-  --rovas-red: #ff5252;
-  --rovas-blue: #448aff;
+  --rovas-bg: #0a1628;
+  --rovas-bg2: #0f1f3a;
+  --rovas-cyan: #38bdf8;
+  --rovas-cyan-dark: #0284c7;
+  --rovas-cyan-light: #7dd3fc;
+  --rovas-glass: rgba(56,189,248,0.08);
+  --rovas-glass-light: rgba(56,189,248,0.15);
+  --rovas-glass-border: rgba(56,189,248,0.15);
+  --rovas-text: #f0f9ff;
+  --rovas-text-muted: #7b93ab;
+  --rovas-green: #34d399;
+  --rovas-red: #f87171;
+  --rovas-blue: #818cf8;
   --rovas-radius: 18px;
   --rovas-radius-sm: 12px;
   --rovas-radius-lg: 24px;
@@ -36,7 +36,7 @@ html,body{touch-action:pan-x pan-y!important;-ms-touch-action:pan-x pan-y!import
 
 body.euro54-body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(145deg, #000a14 0%, #001020 40%, #000e1a 70%, #000a14 100%);
+  background: linear-gradient(145deg, #0a1628 0%, #0f1f3a 40%, #0a1628 70%, #0a1628 100%);
   color: var(--rovas-text);
   min-height: 100vh;
   overflow-x: hidden;
@@ -50,8 +50,8 @@ body.euro54-body::before {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 20%, rgba(0,200,255,0.04) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(0,200,255,0.03) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 20%, rgba(56,189,248,0.04) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(56,189,248,0.03) 0%, transparent 50%);
   animation: e54-ambientDrift 20s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
@@ -71,7 +71,7 @@ body.euro54-body::before {
   z-index: 100;
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  background: rgba(0,10,20,0.75);
+  background: rgba(10,22,40,0.75);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   padding: 12px 20px;
   display: flex;
@@ -94,7 +94,7 @@ body.euro54-body::before {
   background-clip: text;
   letter-spacing: -0.5px;
   text-shadow: none;
-  filter: drop-shadow(0 1px 2px rgba(0,200,255,0.3));
+  filter: drop-shadow(0 1px 2px rgba(56,189,248,0.3));
 }
 
 .e54-logo-sub {
@@ -190,13 +190,13 @@ body.euro54-body::before {
   border-radius: var(--rovas-radius);
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
-  background: linear-gradient(135deg, rgba(0,200,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
-  border: 1px solid rgba(0,200,255,0.15);
+  background: linear-gradient(135deg, rgba(56,189,248,0.08) 0%, rgba(255,255,255,0.04) 100%);
+  border: 1px solid rgba(56,189,248,0.15);
   text-align: center;
   position: relative;
   overflow: hidden;
   animation: e54-fadeInUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.35s both;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2), 0 0 40px rgba(0,200,255,0.05);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2), 0 0 40px rgba(56,189,248,0.05);
 }
 
 .e54-prediction::before {
@@ -206,7 +206,7 @@ body.euro54-body::before {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(45deg, transparent 40%, rgba(0,200,255,0.05) 50%, transparent 60%);
+  background: linear-gradient(45deg, transparent 40%, rgba(56,189,248,0.05) 50%, transparent 60%);
   animation: e54-shimmer 4s ease-in-out infinite;
 }
 
@@ -298,8 +298,8 @@ body.euro54-body::before {
   padding: 6px 14px;
   border-radius: 20px;
   backdrop-filter: blur(16px);
-  background: rgba(0,200,255,0.1);
-  border: 1px solid rgba(0,200,255,0.15);
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.15);
   font-size: 0.6rem;
   font-weight: 700;
   color: var(--rovas-cyan);
