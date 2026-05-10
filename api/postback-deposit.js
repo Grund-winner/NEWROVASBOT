@@ -1,180 +1,120 @@
+// Last updated: 1778157824
+// ═══════════════════════════════════════════════════════
+// ROVAS V2 - Postback Deposit
+// ═══════════════════════════════════════════════════════
 const { query } = require('../lib/db');
+const fetch = require('node-fetch');
 
-// ═══════════════════════════════════════════════════════════════════════
-// Configuration
-// ═══════════════════════════════════════════════════════════════════════
-const BOT_TOKEN          = process.env.BOT_TOKEN || '';
-const NOTIF_BOT_TOKEN    = process.env.NOTIF_BOT_TOKEN || '';
-const NOTIF_ADMIN_CHAT_ID = process.env.NOTIF_ADMIN_CHAT_ID || '';
-const BASE_URL           = process.env.BASE_URL || 'https://api.telegram.org';
+const MIN_DEPOSIT = parseFloat(process.env.MIN_DEPOSIT) || 5;
+const NOTIF_BOT_TOKEN = process.env.NOTIF_BOT_TOKEN;
+const ADMIN_CHAT_IDS = (process.env.NOTIF_ADMIN_CHAT_ID || '').split(',').filter(id => id.trim() !== '');
+const POSTBACK_SECRET = process.env.POSTBACK_SECRET;
 
-// ═══════════════════════════════════════════════════════════════════════
-// Telegram API helpers (native fetch)
-// ═══════════════════════════════════════════════════════════════════════
-async function sendTelegramMessage(chatId, text, token) {
-  const botToken = token || BOT_TOKEN;
-  if (!botToken) {
-    console.error('[postback-deposit] Bot token is missing, cannot send message');
-    return;
-  }
-  try {
-    const url = `${BASE_URL}/bot${botToken}/sendMessage`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: Number(chatId),
-        text,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
-    });
-    if (!res.ok) {
-      const errBody = await res.text();
-      console.error(`[postback-deposit] Telegram API ${res.status}:`, errBody);
+function verifyPostback(req) {
+    if (!POSTBACK_SECRET) {
+        console.warn('[POSTBACK AUTH] POSTBACK_SECRET not set - postback auth disabled');
+        return true;
     }
-  } catch (err) {
-    console.error('[postback-deposit] sendTelegramMessage error:', err.message);
-  }
+    const sig = req.query.sig || req.headers['x-postback-sig'] || '';
+    if (sig === POSTBACK_SECRET) return true;
+    console.warn('[POSTBACK AUTH] Invalid static token, rejected.');
+    return false;
 }
 
-/**
- * Send notification to all admin chat IDs (comma-separated).
- */
-async function notifyAdmins(text) {
-  if (!NOTIF_BOT_TOKEN || !NOTIF_ADMIN_CHAT_ID) {
-    console.warn('[postback-deposit] NOTIF_BOT_TOKEN or NOTIF_ADMIN_CHAT_ID not configured');
-    return;
-  }
-  const chatIds = NOTIF_ADMIN_CHAT_ID.split(',').map(id => id.trim()).filter(Boolean);
-  for (const chatId of chatIds) {
-    await sendTelegramMessage(chatId, text, NOTIF_BOT_TOKEN);
-  }
+async function sendNotif(chatId, text) {
+    try {
+        await fetch(`https://api.telegram.org/bot${NOTIF_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'HTML' })
+        });
+    } catch (e) { console.error('[NOTIF ERROR]', e.message); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// Main handler
-// ═══════════════════════════════════════════════════════════════════════
-module.exports = async (req, res) => {
-  // Allow both GET and POST
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    return res.status(200).json({ success: true });
-  }
+module.exports = async function handler(req, res) {
+    try {
+        if (!verifyPostback(req)) {
+            console.warn('[POSTBACK DEP] Invalid signature, rejected.');
+            return res.status(403).send('Forbidden');
+        }
 
-  try {
-    // Parse params from query string or body
-    const params = req.method === 'GET' ? req.query : (req.body || {});
-    const { clickid, user_id, amount, transactionid } = params;
+        const clickid = req.query.clickid || null;
+        const userId1win = req.query.user_id;
+        const amount = parseFloat(req.query.amount) || 0;
+        const transactionId = req.query.transactionid || null;
 
-    if (!clickid && !user_id) {
-      console.warn('[postback-deposit] Missing clickid and user_id');
-      return res.status(200).json({ success: true, message: 'Missing parameters' });
+        if (!userId1win) return res.status(400).send('Missing user_id');
+        console.log(`[POSTBACK DEP] clickid=${clickid}, user_id=${userId1win}, amount=${amount}, txn=${transactionId}`);
+
+        // ─── Vérifier si la transaction a déjà été traitée ───
+        if (transactionId) {
+            const dup = await query('SELECT id FROM deposits WHERE transaction_id = $1', [transactionId]);
+            if (dup.length > 0) {
+                console.log(`[POSTBACK DEP] Transaction ${transactionId} déjà traitée, ignorée.`);
+                return res.status(200).send('OK');
+            }
+        }
+
+        let telegramId = clickid || null;
+        let total = amount;
+
+        if (clickid) {
+            const existing = await query('SELECT * FROM users WHERE telegram_id = $1', [clickid]);
+            if (existing.length > 0) {
+                const user = existing[0];
+                total = parseFloat(user.deposit_amount || 0) + amount;
+                const ok = total >= MIN_DEPOSIT;
+                await query(
+                    'UPDATE users SET is_deposited = $1, deposit_amount = $2, one_win_user_id = $3, is_registered = TRUE, deposited_at = NOW(), updated_at = NOW() WHERE telegram_id = $4',
+                    [ok, total, userId1win, clickid]
+                );
+            } else {
+                const ok = amount >= MIN_DEPOSIT;
+                await query(
+                    'INSERT INTO users (telegram_id, one_win_user_id, is_registered, is_deposited, deposit_amount, deposited_at, created_at, updated_at) VALUES ($1, $2, TRUE, $3, $4, CASE WHEN $3 THEN NOW() ELSE NULL END, NOW(), NOW())',
+                    [clickid, userId1win, ok, amount]
+                );
+            }
+        } else {
+            const existing = await query('SELECT * FROM users WHERE one_win_user_id = $1', [userId1win]);
+            if (existing.length > 0) {
+                telegramId = existing[0].telegram_id;
+                total = parseFloat(existing[0].deposit_amount || 0) + amount;
+                const ok = total >= MIN_DEPOSIT;
+                await query(
+                    'UPDATE users SET is_deposited = $1, deposit_amount = $2, is_registered = TRUE, deposited_at = NOW(), updated_at = NOW() WHERE one_win_user_id = $3',
+                    [ok, total, userId1win]
+                );
+            } else {
+                const ok = amount >= MIN_DEPOSIT;
+                await query(
+                    'INSERT INTO users (one_win_user_id, is_registered, is_deposited, deposit_amount, deposited_at, created_at, updated_at) VALUES ($1, TRUE, $2, $3, CASE WHEN $2 THEN NOW() ELSE NULL END, NOW(), NOW())',
+                    [userId1win, ok, amount]
+                );
+            }
+        }
+
+        // ─── Enregistrer la transaction ───
+        await query(
+            'INSERT INTO deposits (telegram_id, one_win_user_id, amount, transaction_id, created_at) VALUES ($1, $2, $3, $4, NOW())',
+            [telegramId, userId1win, amount, transactionId]
+        );
+
+        // ─── Notification Admin ───
+        if (ADMIN_CHAT_IDS.length > 0 && NOTIF_BOT_TOKEN) {
+            const notif = '<b>💰 Nouveau dépôt (ROVAS V2)</b>\n\n'
+                + '<b>ID 1Win :</b> <code>' + userId1win + '</code>\n'
+                + '<b>Telegram ID :</b> <code>' + (telegramId || 'N/A') + '</code>\n'
+                + '<b>Montant :</b> $' + amount.toFixed(2) + '\n'
+                + '<b>Total :</b> $' + total.toFixed(2) + '\n'
+                + '<b>Transaction :</b> <code>' + (transactionId || 'N/A') + '</code>';
+            for (const chatId of ADMIN_CHAT_IDS) { await sendNotif(chatId, notif); }
+        }
+
+        console.log(`[POSTBACK DEP] OK: ${amount}$ | tg=${telegramId || 'N/A'} | 1win=${userId1win}`);
+        res.status(200).send('OK');
+    } catch (error) {
+        console.error('[POSTBACK DEP ERROR]', error);
+        res.status(500).send('Error');
     }
-
-    // Validate amount
-    const depositAmount = parseFloat(amount);
-    if (isNaN(depositAmount) || depositAmount <= 0) {
-      console.warn(`[postback-deposit] Invalid amount: ${amount}`);
-      return res.status(200).json({ success: true, message: 'Invalid amount' });
-    }
-
-    const telegramId = clickid || null;
-    const oneWinUserId = user_id || null;
-
-    // ── Check for duplicate transaction ──────────────────────────────
-    if (transactionid) {
-      const { rows: existing } = await query(
-        'SELECT 1 FROM deposits WHERE transaction_id = $1 LIMIT 1',
-        [transactionid],
-      );
-      if (existing.length > 0) {
-        console.log(`[postback-deposit] Duplicate transaction ${transactionid}, skipping`);
-        return res.status(200).json({ success: true, message: 'Duplicate transaction' });
-      }
-    }
-
-    // ── Find user by telegram_id or one_win_user_id ──────────────────
-    let user = null;
-    if (telegramId) {
-      const { rows } = await query(
-        'SELECT * FROM users WHERE telegram_id = $1::int',
-        [telegramId],
-      );
-      user = rows[0] || null;
-    }
-    if (!user && oneWinUserId) {
-      const { rows } = await query(
-        'SELECT * FROM users WHERE one_win_user_id = $1',
-        [oneWinUserId],
-      );
-      user = rows[0] || null;
-    }
-
-    // ── Insert deposit record ────────────────────────────────────────
-    await query(
-      `INSERT INTO deposits (one_win_user_id, telegram_id, amount, transaction_id, created_at)
-       VALUES ($1, $2::int, $3, $4, NOW())`,
-      [oneWinUserId, telegramId, depositAmount, transactionid || null],
-    );
-
-    // ── Calculate total deposits for this 1Win user ──────────────────
-    const effectiveOneWinId = oneWinUserId || (user ? user.one_win_user_id : null);
-    let totalAmount = depositAmount;
-
-    if (effectiveOneWinId) {
-      const { rows: sumRows } = await query(
-        'SELECT COALESCE(SUM(amount), 0) as total FROM deposits WHERE one_win_user_id = $1',
-        [effectiveOneWinId],
-      );
-      totalAmount = parseFloat(sumRows[0].total);
-    }
-
-    // ── Update user deposit status ───────────────────────────────────
-    if (user) {
-      const effectiveTid = telegramId || user.telegram_id;
-      await query(
-        `UPDATE users
-         SET is_deposited = TRUE,
-             deposit_amount = $2,
-             deposited_at = COALESCE(deposited_at, NOW()),
-             updated_at = NOW()
-         WHERE telegram_id = $1::int`,
-        [effectiveTid, totalAmount],
-      );
-
-      // ── Send congratulation to user ──────────────────────────────
-      const userCongratsText =
-        '💰 <b>Dépôt détecté !</b>\n\n'
-        + `Montant : <b>${depositAmount}$</b>\n`
-        + `Total cumulé : <b>${totalAmount}$</b>\n\n`
-        + '🎉 Votre dépôt a été confirmé avec succès !\n'
-        + 'Accédez maintenant aux prédictions VIP ROVAS ! 🚀';
-
-      await sendTelegramMessage(effectiveTid, userCongratsText, BOT_TOKEN);
-    }
-
-    // ── Send notification to admins ──────────────────────────────────
-    const adminNotifText =
-      '📊 <b>Nouveau dépôt ROVAS</b>\n\n'
-      + `👤 Telegram ID : <code>${telegramId || 'N/A'}</code>\n`
-      + `🎰 1Win ID : <code>${oneWinUserId || 'N/A'}</code>\n`
-      + `💵 Montant : <b>${depositAmount}$</b>\n`
-      + `💰 Total cumulé : <b>${totalAmount}$</b>\n`
-      + `🔗 Transaction : <code>${transactionid || 'N/A'}</code>\n`
-      + `🕐 ${new Date().toISOString()}`;
-
-    await notifyAdmins(adminNotifText);
-
-    console.log(
-      `[postback-deposit] Deposit recorded: tid=${telegramId} owid=${oneWinUserId} ` +
-      `amount=${depositAmount} total=${totalAmount} txid=${transactionid}`,
-    );
-
-    // Always return 200
-    return res.status(200).json({ success: true, total: totalAmount });
-  } catch (err) {
-    console.error('[postback-deposit] Error:', err);
-    // Always return 200 to prevent postback retry
-    return res.status(200).json({ success: true, error: 'Internal error handled' });
-  }
 };

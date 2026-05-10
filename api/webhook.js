@@ -1,840 +1,933 @@
+// ═══════════════════════════════════════════════════════════════════
+// ROVAS V2 - Webhook Telegram Bot (Multilingue 10 langues)
+// Route : POST /api/webhook
+// Un seul message a la fois - editMessageText
+// ═══════════════════════════════════════════════════════════════════
+const crypto = require('crypto');
 const { query } = require('../lib/db');
-const https = require('https');
 
-// ═══════════════════════════════════════════════════════════════════════
-// Configuration
-// ═══════════════════════════════════════════════════════════════════════
-const BOT_TOKEN    = process.env.BOT_TOKEN   || '';
-const REG_LINK     = process.env.REG_LINK    || '';
-const PREDICTION_URL = process.env.PREDICTION_URL || '';
-const MIN_DEPOSIT  = parseFloat(process.env.MIN_DEPOSIT) || 5;
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const REG_LINK = process.env.REG_LINK || 'https://one-vv343.com/casino?p=ufjv';
+const BASE_URL = process.env.BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://newrovasbot.vercel.app');
+const MIN_DEPOSIT = parseFloat(process.env.MIN_DEPOSIT) || 5;
+const PROMO = process.env.PROMO_CODE || 'ROVAS';
+const CHANNEL = process.env.CHANNEL || '@dvyswin';
+const LINK_SECRET = process.env.ADMIN_PASSWORD || 'rovasadmin2024';
 
-// ═══════════════════════════════════════════════════════════════════════
-// Telegram Bot API helpers
-// ═══════════════════════════════════════════════════════════════════════
-function tgRequest(method, body) {
-  return new Promise((resolve, reject) => {
-    if (!BOT_TOKEN) return reject(new Error('BOT_TOKEN is missing'));
-    const payload = JSON.stringify(body);
-    const options = {
-      hostname: 'api.telegram.org',
-      path: `/bot${BOT_TOKEN}/${method}`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload),
-      },
-    };
-    const req = https.request(options, (res) => {
-      let raw = '';
-      res.on('data', (chunk) => (raw += chunk));
-      res.on('end', () => {
-        try { resolve(JSON.parse(raw)); }
-        catch { resolve({ ok: false, description: 'Response parse error' }); }
-      });
-    });
-    req.on('error', reject);
-    req.setTimeout(15000, () => { req.destroy(); reject(new Error('TG request timeout')); });
-    req.write(payload);
-    req.end();
-  });
-}
-
-async function tgSendMessage(chatId, text, replyMarkup) {
-  return tgRequest('sendMessage', {
-    chat_id: chatId,
-    text,
-    parse_mode: 'HTML',
-    reply_markup: replyMarkup || undefined,
-    disable_web_page_preview: true,
-  });
-}
-
-async function tgEditMessage(chatId, messageId, text, replyMarkup) {
-  return tgRequest('editMessageText', {
-    chat_id: chatId,
-    message_id: messageId,
-    text,
-    parse_mode: 'HTML',
-    reply_markup: replyMarkup || undefined,
-    disable_web_page_preview: true,
-  });
-}
-
-async function tgAnswerCallback(callbackQueryId, text) {
-  return tgRequest('answerCallbackQuery', {
-    callback_query_id: callbackQueryId,
-    text: text || '',
-    show_alert: false,
-  });
-}
-
-async function tgDeleteMessage(chatId, messageId) {
-  return tgRequest('deleteMessage', { chat_id: chatId, message_id: messageId }).catch(() => {});
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// i18n — 10-language translations
-// ═══════════════════════════════════════════════════════════════════════
-const i18n = {
-  fr: {
-    welcome:
-      '🃏 <b>Bienvenue sur ROVAS</b> — votre compagnon de prédictions intelligent !\n\n'
-      + 'ROVAS vous donne accès à des prédictions analysées pour les jeux de casino. '
-      + 'Suivez les étapes, inscrivez-vous, effectuez votre dépôt et débloquez des prédictions exclusives.\n\n'
-      + 'Prêt à maximiser vos gains ? C\'est parti ! 🚀',
-    menu_register:     '🎰 Créer mon compte 1Win',
-    menu_instructions: '📖 Comment fonctionne ROVAS ?',
-    menu_status:       '📊 Mon statut',
-    menu_language:     '🌐 Changer de langue',
-    menu_predictions:  '⭐ Accéder aux prédictions',
-    instructions_text:
-      'Voici comment démarrer avec ROVAS :\n\n'
-      + '1️⃣ <b>Créez votre compte 1Win</b>\n'
-      + 'Cliquez sur le bouton d\'inscription ci-dessous et finalisez votre inscription sur 1Win.\n\n'
-      + '2️⃣ <b>Effectuez un dépôt</b>\n'
-      + 'Approvisionnez votre compte d\'au moins <b>{MIN_DEPOSIT}$</b> pour activer l\'accès VIP.\n\n'
-      + '3️⃣ <b>Accédez aux prédictions</b>\n'
-      + 'Une fois votre dépôt confirmé, vous débloquerez les prédictions exclusives pour booster vos chances.\n\n'
-      + '💡 <i>Plus vous jouez, plus vous gagnez !</i>',
-    instructions_back: '🔙 Retour au menu',
-    status_registered:     '✅ Votre compte 1Win est lié',
-    status_not_registered: '❌ Aucun compte 1Win lié pour le moment',
-    status_deposited:      '💰 Dépôt confirmé : <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ Aucun dépôt détecté pour le moment',
-    status_vip:            '🎉 Vous avez un accès VIP ! Utilisez le bouton ci-dessous pour consulter les prédictions.',
-    status_not_vip:        '🔒 Effectuez un dépôt d\'au moins <b>{MIN_DEPOSIT}$</b> pour débloquer l\'accès aux prédictions.',
-    status_send_id:        '📝 Pour lier votre compte, envoyez votre <b>ID 1Win</b> (un numéro de 5 à 15 chiffres) dans cette conversation.',
-    lang_select:           '🌐 Choisissez votre langue préférée :',
-    lang_changed:          '✅ Langue mise à jour avec succès !',
-    id_saved:              '✅ Votre ID 1Win (<code>{ID}</code>) a été enregistré avec succès !\n\nVotre compte est maintenant lié.',
-    id_already_registered: 'ℹ️ Vous avez déjà un compte 1Win lié.',
-    id_invalid:            '⚠️ L\'identifiant saisi ne semble pas être un ID 1Win valide. Veuillez entrer un numéro de 5 à 15 chiffres.',
-  },
-
-  en: {
-    welcome:
-      '🃏 <b>Welcome to ROVAS</b> — your smart prediction companion!\n\n'
-      + 'ROVAS provides carefully analyzed predictions for casino games. '
-      + 'Follow the steps, register, make a deposit and unlock exclusive predictions.\n\n'
-      + 'Ready to level up your game? Let\'s go! 🚀',
-    menu_register:     '🎰 Create my 1Win account',
-    menu_instructions: '📖 How does ROVAS work?',
-    menu_status:       '📊 My status',
-    menu_language:     '🌐 Change language',
-    menu_predictions:  '⭐ Access predictions',
-    instructions_text:
-      'Here\'s how to get started with ROVAS:\n\n'
-      + '1️⃣ <b>Create your 1Win account</b>\n'
-      + 'Click the registration button below and complete your signup on 1Win.\n\n'
-      + '2️⃣ <b>Make a deposit</b>\n'
-      + 'Fund your account with at least <b>{MIN_DEPOSIT}$</b> to activate VIP access.\n\n'
-      + '3️⃣ <b>Access predictions</b>\n'
-      + 'Once your deposit is confirmed, you\'ll unlock exclusive predictions to boost your odds.\n\n'
-      + '💡 <i>The more you play, the more you win!</i>',
-    instructions_back: '🔙 Back to menu',
-    status_registered:     '✅ Your 1Win account is linked',
-    status_not_registered: '❌ No 1Win account linked yet',
-    status_deposited:      '💰 Deposit confirmed: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ No deposit detected yet',
-    status_vip:            '🎉 You have VIP access! Use the button below to view predictions.',
-    status_not_vip:        '🔒 Deposit at least <b>{MIN_DEPOSIT}$</b> to unlock prediction access.',
-    status_send_id:        '📝 To link your account, send your <b>1Win ID</b> (a 5-15 digit number) in this chat.',
-    lang_select:           '🌐 Choose your preferred language:',
-    lang_changed:          '✅ Language updated successfully!',
-    id_saved:              '✅ Your 1Win ID (<code>{ID}</code>) has been saved successfully!\n\nYour account is now linked.',
-    id_already_registered: 'ℹ️ You already have a 1Win account linked.',
-    id_invalid:            '⚠️ That doesn\'t look like a valid 1Win ID. Please enter a 5-15 digit number.',
-  },
-
-  hi: {
-    welcome:
-      '🃏 <b>ROVAS में आपका स्वागत है</b> — आपका स्मार्ट प्रेडिक्शन साथी!\n\n'
-      + 'ROVAS कैसीनो गेम्स के लिए सावधानी से विश्लेषित प्रेडिक्शन प्रदान करता है। '
-      + 'चरणों का पालन करें, रजिस्टर करें, डिपॉजिट करें और एक्सक्लूसिव प्रेडिक्शन अनलॉक करें।\n\n'
-      + 'अपने गेम को बेहतर बनाने के लिए तैयार हैं? चलिए शुरू करते हैं! 🚀',
-    menu_register:     '🎰 मेरा 1Win अकाउंट बनाएं',
-    menu_instructions: '📖 ROVAS कैसे काम करता है?',
-    menu_status:       '📊 मेरा स्टेटस',
-    menu_language:     '🌐 भाषा बदलें',
-    menu_predictions:  '⭐ प्रेडिक्शन देखें',
-    instructions_text:
-      'ROVAS से शुरू करने का तरीका:\n\n'
-      + '1️⃣ <b>अपना 1Win अकाउंट बनाएं</b>\n'
-      + 'नीचे दिए गए रजिस्ट्रेशन बटन पर क्लिक करें और 1Win पर साइनअप पूरा करें।\n\n'
-      + '2️⃣ <b>डिपॉजिट करें</b>\n'
-      + 'VIP एक्सेस सक्रिय करने के लिए कम से कम <b>{MIN_DEPOSIT}$</b> डिपॉजिट करें।\n\n'
-      + '3️⃣ <b>प्रेडिक्शन एक्सेस करें</b>\n'
-      + 'डिपॉजिट कन्फर्म होने पर एक्सक्लूसिव प्रेडिक्शन अनलॉक हो जाएंगे।\n\n'
-      + '💡 <i>जितना अधिक खेलेंगे, उतना अधिक जीतेंगे!</i>',
-    instructions_back: '🔙 मेनू पर वापस',
-    status_registered:     '✅ आपका 1Win अकाउंट लिंक हो गया',
-    status_not_registered: '❌ अभी तक कोई 1Win अकाउंट लिंक नहीं',
-    status_deposited:      '💰 डिपॉजिट कन्फर्म: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ अभी तक कोई डिपॉजिट नहीं',
-    status_vip:            '🎉 आपको VIP एक्सेस मिल गया! प्रेडिक्शन देखने के लिए नीचे दिया गया बटन दबाएं।',
-    status_not_vip:        '🔒 प्रेडिक्शन एक्सेस अनलॉक करने के लिए कम से कम <b>{MIN_DEPOSIT}$</b> डिपॉजिट करें।',
-    status_send_id:        '📝 अकाउंट लिंक करने के लिए अपना <b>1Win ID</b> (5-15 अंकों का नंबर) इस चैट में भेजें।',
-    lang_select:           '🌐 अपनी पसंदीदा भाषा चुनें:',
-    lang_changed:          '✅ भाषा सफलतापूर्वक अपडेट हो गई!',
-    id_saved:              '✅ आपका 1Win ID (<code>{ID}</code>) सफलतापूर्वक सेव हो गया!\n\nअब आपका अकाउंट लिंक हो गया है।',
-    id_already_registered: 'ℹ️ आपका 1Win अकाउंट पहले से लिंक है।',
-    id_invalid:            '⚠️ यह एक valid 1Win ID नहीं लगता। कृपया 5-15 अंकों का नंबर दर्ज करें।',
-  },
-
-  uz: {
-    welcome:
-      '🃏 <b>ROVAS ga xush kelibsiz</b> — aqlli prognoz yordamchingiz!\n\n'
-      + 'ROVAS kazino o\'yinlari uchun diqqat bilan tahlil qilingan prognozlar taqdim etadi. '
-      + 'Qadamlarni bajaring, ro\'yxatdan o\'ting, depozit qiling va eksklyuziv prognozlarni oching.\n\n'
-      + 'O\'yiningizni yuqori darajaga ko\'tarishga tayyormisiz? Boshlaylik! 🚀',
-    menu_register:     '🎰 1Win hisobimni yarating',
-    menu_instructions: '📖 ROVAS qanday ishlaydi?',
-    menu_status:       '📊 Mening holatim',
-    menu_language:     '🌐 Tilni o\'zgartirish',
-    menu_predictions:  '⭐ Prognozlarni ko\'rish',
-    instructions_text:
-      'ROVAS bilan qanday boshlash kerak:\n\n'
-      + '1️⃣ <b>1Win hisobingizni yarating</b>\n'
-      + 'Quyidagi ro\'yxatdan o\'tish tugmasini bosing va 1Win\'da ro\'yxatdan o\'ting.\n\n'
-      + '2️⃣ <b>Depozit qiling</b>\n'
-      + 'VIP ruxsatni faollashtirish uchun kamida <b>{MIN_DEPOSIT}$</b> depozit qiling.\n\n'
-      + '3️⃣ <b>Prognozlarga kiring</b>\n'
-      + 'Depozitingiz tasdiqlangach, eksklyuziv prognozlar ochiladi.\n\n'
-      + '💡 <i>Ko\'p o\'ynasangiz, ko\'p yutasiz!</i>',
-    instructions_back: '🔙 Menyuga qaytish',
-    status_registered:     '✅ 1Win hisobingiz bog\'langan',
-    status_not_registered: '❌ Hali 1Win hisobi bog\'lanmagan',
-    status_deposited:      '💰 Depozit tasdiqlangan: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ Hali depozit topilmadi',
-    status_vip:            '🎉 Sizda VIP ruxsat bor! Prognozlarni ko\'rish uchun quyidagi tugmani bosing.',
-    status_not_vip:        '🔒 Prognoz ruxsatini ochish uchun kamida <b>{MIN_DEPOSIT}$</b> depozit qiling.',
-    status_send_id:        '📝 Hisobni bog\'lash uchun o\'z <b>1Win ID</b>\'ingizni (5-15 raqam) shu chatga yuboring.',
-    lang_select:           '🌐 Tilni tanlang:',
-    lang_changed:          '✅ Til muvaffaqiyatli yangilandi!',
-    id_saved:              '✅ Sizning 1Win ID\'ingiz (<code>{ID}</code>) muvaffaqiyatli saqlandi!\n\nHisobingiz endi bog\'langan.',
-    id_already_registered: 'ℹ️ Sizning 1Win hisobingiz allaqachon bog\'langan.',
-    id_invalid:            '⚠️ Bu yaroqli 1Win ID emasdek ko\'rinadi. Iltimos, 5-15 raqamli son kiriting.',
-  },
-
-  es: {
-    welcome:
-      '🃏 <b>Bienvenido a ROVAS</b> — tu asistente inteligente de predicciones!\n\n'
-      + 'ROVAS te ofrece predicciones analizadas con detalle para juegos de casino. '
-      + 'Sigue los pasos, regístrate, realiza tu depósito y accede a predicciones exclusivas.\n\n'
-      + '¿Listo para llevar tus jugadas al siguiente nivel? ¡Vamos! 🚀',
-    menu_register:     '🎰 Crear mi cuenta en 1Win',
-    menu_instructions: '📖 ¿Cómo funciona ROVAS?',
-    menu_status:       '📊 Mi estado',
-    menu_language:     '🌐 Cambiar idioma',
-    menu_predictions:  '⭐ Acceder a predicciones',
-    instructions_text:
-      'Así se comienza con ROVAS:\n\n'
-      + '1️⃣ <b>Crea tu cuenta en 1Win</b>\n'
-      + 'Pulsa el botón de registro y completa tu inscripción en 1Win.\n\n'
-      + '2️⃣ <b>Realiza un depósito</b>\n'
-      + 'Aporta al menos <b>{MIN_DEPOSIT}$</b> para activar el acceso VIP.\n\n'
-      + '3️⃣ <b>Accede a las predicciones</b>\n'
-      + 'Una vez confirmado tu depósito, desbloquearás predicciones exclusivas.\n\n'
-      + '💡 <i>¡Cuanto más juegues, más ganarás!</i>',
-    instructions_back: '🔙 Volver al menú',
-    status_registered:     '✅ Tu cuenta de 1Win está vinculada',
-    status_not_registered: '❌ Sin cuenta de 1Win vinculada aún',
-    status_deposited:      '💰 Depósito confirmado: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ Sin depósito detectado aún',
-    status_vip:            '🎉 ¡Tienes acceso VIP! Pulsa el botón de abajo para ver las predicciones.',
-    status_not_vip:        '🔒 Deposita al menos <b>{MIN_DEPOSIT}$</b> para desbloquear las predicciones.',
-    status_send_id:        '📝 Para vincular tu cuenta, envía tu <b>ID de 1Win</b> (un número de 5 a 15 dígitos) en este chat.',
-    lang_select:           '🌐 Elige tu idioma preferido:',
-    lang_changed:          '✅ ¡Idioma actualizado correctamente!',
-    id_saved:              '✅ Tu ID de 1Win (<code>{ID}</code>) se ha guardado correctamente.\n\nTu cuenta está ahora vinculada.',
-    id_already_registered: 'ℹ️ Ya tienes una cuenta de 1Win vinculada.',
-    id_invalid:            '⚠️ Eso no parece un ID de 1Win válido. Por favor, introduce un número de 5 a 15 dígitos.',
-  },
-
-  az: {
-    welcome:
-      '🃏 <b>ROVAS-a xoş gəldiniz</b> — ağıllı proqnoz köməkçiniz!\n\n'
-      + 'ROVAS kazino oyunları üçün diqqətlə analiz edilmiş proqnozlar təqdim edir. '
-      + 'Addımları izləyin, qeydiyyatdan keçin, depozit qoyun və eksklüziv proqnozları açın.\n\n'
-      + 'Oyununuzu yüksək səviyyəyə qaldırmağa hazırsınız? Başlayaq! 🚀',
-    menu_register:     '🎰 1Win hesabımı yaradın',
-    menu_instructions: '📖 ROVAS necə işləyir?',
-    menu_status:       '📊 Mənim statusum',
-    menu_language:     '🌐 Dili dəyiş',
-    menu_predictions:  '⭐ Proqnozlara bax',
-    instructions_text:
-      'ROVAS ilə necə başlamaq olar:\n\n'
-      + '1️⃣ <b>1Win hesabınızı yaradın</b>\n'
-      + 'Aşağıdakı qeydiyyat düyməsinə basın və 1Win-də qeydiyyatdan keçin.\n\n'
-      + '2️⃣ <b>Depozit qoyun</b>\n'
-      + 'VIP girişi aktivləşdirmək üçün ən az <b>{MIN_DEPOSIT}$</b> depozit qoyun.\n\n'
-      + '3️⃣ <b>Proqnozlara daxil olun</b>\n'
-      + 'Depozitiniz təsdiqləndikdən sonra eksklüziv proqnozlar açılacaq.\n\n'
-      + '💡 <i>Neçə çox oynayırsınızsa, bir o qədər qazanırsınız!</i>',
-    instructions_back: '🔙 Menyuya qayıt',
-    status_registered:     '✅ 1Win hesabınız bağlanıb',
-    status_not_registered: '❌ Hələ 1Win hesabı bağlanmayıb',
-    status_deposited:      '💰 Depozit təsdiqlənib: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ Hələ depozit tapılmayıb',
-    status_vip:            '🎉 Sizin VIP girişiniz var! Proqnozlara baxmaq üçün aşağıdakı düyməni basın.',
-    status_not_vip:        '🔒 Proqnoz girişi açmaq üçün ən az <b>{MIN_DEPOSIT}$</b> depozit qoyun.',
-    status_send_id:        '📝 Hesabı bağlamaq üçün <b>1Win ID</b>\'nizi (5-15 rəqəmli nömrə) bu çata göndərin.',
-    lang_select:           '🌐 Dilinizi seçin:',
-    lang_changed:          '✅ Dil uğurla yeniləndi!',
-    id_saved:              '✅ 1Win ID\'niz (<code>{ID}</code>) uğurla saxlanıldı!\n\nHesabınız indi bağlanıb.',
-    id_already_registered: 'ℹ️ Sizin 1Win hesabınız artıq bağlanıb.',
-    id_invalid:            '⚠️ Bu keçərli 1Win ID kimi görünmür. Zəhmət olmasa, 5-15 rəqəmli nömrə daxil edin.',
-  },
-
-  tr: {
-    welcome:
-      '🃏 <b>ROVAS\'a hoş geldiniz</b> — akıllı tahmin asistanınız!\n\n'
-      + 'ROVAS, casino oyunları için özenle analiz edilmiş tahminler sunar. '
-      + 'Adımları takip edin, kayıt olun, para yatırın ve özel tahminlerin kilidini açın.\n\n'
-      + 'Oyununuzu bir üst seviyeye taşımaya hazır mısınız? Başlayalım! 🚀',
-    menu_register:     '🎰 1Win hesabımı oluştur',
-    menu_instructions: '📖 ROVAS nasıl çalışır?',
-    menu_status:       '📊 Durumum',
-    menu_language:     '🌐 Dil değiştir',
-    menu_predictions:  '⭐ Tahminlere eriş',
-    instructions_text:
-      'ROVAS ile başlamak için:\n\n'
-      + '1️⃣ <b>1Win hesabınızı oluşturun</b>\n'
-      + 'Aşağıdaki kayıt butonuna tıklayın ve 1Win\'de kaydolun.\n\n'
-      + '2️⃣ <b>Para yatırın</b>\n'
-      + 'VIP erişimi aktifleştirmek için en az <b>{MIN_DEPOSIT}$</b> yatırın.\n\n'
-      + '3️⃣ <b>Tahminlere erişin</b>\n'
-      + 'Yatırma işleminiz onaylandığında özel tahminler açılacak.\n\n'
-      + '💡 <i>Ne kadar çok oynarsanız, o kadar çok kazanırsınız!</i>',
-    instructions_back: '🔙 Menüye dön',
-    status_registered:     '✅ 1Win hesabınız bağlı',
-    status_not_registered: '❌ Henüz 1Win hesabı bağlı değil',
-    status_deposited:      '💰 Para yatırma onaylandı: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ Henüz para yatırma tespit edilmedi',
-    status_vip:            '🎉 VIP erişiminiz var! Tahminleri görmek için aşağıdaki butonu tıklayın.',
-    status_not_vip:        '🔒 Tahmin erişimini açmak için en az <b>{MIN_DEPOSIT}$</b> yatırın.',
-    status_send_id:        '📝 Hesabınızı bağlamak için <b>1Win ID</b>\'nizi (5-15 haneli numara) bu sohbete gönderin.',
-    lang_select:           '🌐 Tercih ettiğiniz dili seçin:',
-    lang_changed:          '✅ Dil başarıyla güncellendi!',
-    id_saved:              '✅ 1Win ID\'niz (<code>{ID}</code>) başarıyla kaydedildi!\n\nHesabınız artık bağlı.',
-    id_already_registered: 'ℹ️ Zaten bir 1Win hesabınız bağlı.',
-    id_invalid:            '⚠️ Bu geçerli bir 1Win ID görünmüyor. Lütfen 5-15 haneli bir numara girin.',
-  },
-
-  ar: {
-    welcome:
-      '🃏 <b>مرحبًا بك في ROVAS</b> — رفيقك الذكي للتنبؤات!\n\n'
-      + 'يقدم لك ROVAS تنبؤات محللة بعناية لألعاب الكازينو. '
-      + 'اتبع الخطوات، وسجل، وقم بالإيداع، وافتح التنبؤات الحصرية.\n\n'
-      + 'هل أنت مستعد للارتقاء بلعبك؟ هيا بنا! 🚀',
-    menu_register:     '🎰 إنشاء حسابي على 1Win',
-    menu_instructions: '📖 كيف يعمل ROVAS؟',
-    menu_status:       '📊 حالتي',
-    menu_language:     '🌐 تغيير اللغة',
-    menu_predictions:  '⭐ الوصول للتنبؤات',
-    instructions_text:
-      'كيف تبدأ مع ROVAS:\n\n'
-      + '1️⃣ <b>أنشئ حسابك على 1Win</b>\n'
-      + 'اضغط على زر التسجيل وأكمل تسجيلك على 1Win.\n\n'
-      + '2️⃣ <b>قم بالإيداع</b>\n'
-      + 'أودع في حسابك ما لا يقل عن <b>{MIN_DEPOSIT}$</b> لتفعيل الوصول VIP.\n\n'
-      + '3️⃣ <b>الوصول للتنبؤات</b>\n'
-      + 'بمجرد تأكيد إيداعك، ستفتح التنبؤات الحصرية.\n\n'
-      + '💡 <i>كلما لعبت أكثر، ربحت أكثر!</i>',
-    instructions_back: '🔙 العودة للقائمة',
-    status_registered:     '✅ حسابك على 1Win مرتبط',
-    status_not_registered: '❌ لم يتم ربط حساب 1Win بعد',
-    status_deposited:      '💰 الإيداع مؤكد: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ لم يتم اكتشاف إيداع بعد',
-    status_vip:            '🎉 لديك وصول VIP! استخدم الزر أدناه لعرض التنبؤات.',
-    status_not_vip:        '🔒 أودع ما لا يقل عن <b>{MIN_DEPOSIT}$</b> لفتح الوصول للتنبؤات.',
-    status_send_id:        '📝 لربط حسابك، أرسل <b>معرف 1Win</b> الخاص بك (رقم من 5 إلى 15 خانة) في هذه المحادثة.',
-    lang_select:           '🌐 اختر لغتك المفضلة:',
-    lang_changed:          '✅ تم تحديث اللغة بنجاح!',
-    id_saved:              '✅ تم حفظ معرف 1Win الخاص بك (<code>{ID}</code>) بنجاح!\n\nحسابك الآن مرتبط.',
-    id_already_registered: 'ℹ️ لديك بالفعل حساب 1Win مرتبط.',
-    id_invalid:            '⚠️ هذا لا يبدو معرف 1Win صالحًا. يرجى إدخال رقم من 5 إلى 15 خانة.',
-  },
-
-  ru: {
-    welcome:
-      '🃏 <b>Добро пожаловать в ROVAS</b> — ваш умный помощник по прогнозам!\n\n'
-      + 'ROVAS предоставляет тщательно проанализированные прогнозы для казино-игр. '
-      + 'Выполните шаги, зарегистрируйтесь, пополните счёт и получите доступ к эксклюзивным прогнозам.\n\n'
-      + 'Готовы поднять свою игру на новый уровень? Начнём! 🚀',
-    menu_register:     '🎰 Создать аккаунт 1Win',
-    menu_instructions: '📖 Как работает ROVAS?',
-    menu_status:       '📊 Мой статус',
-    menu_language:     '🌐 Сменить язык',
-    menu_predictions:  '⭐ Открыть прогнозы',
-    instructions_text:
-      'Как начать работу с ROVAS:\n\n'
-      + '1️⃣ <b>Создайте аккаунт 1Win</b>\n'
-      + 'Нажмите кнопку регистрации и завершите регистрацию на 1Win.\n\n'
-      + '2️⃣ <b>Пополните счёт</b>\n'
-      + 'Внесите не менее <b>{MIN_DEPOSIT}$</b> для активации VIP-доступа.\n\n'
-      + '3️⃣ <b>Получите доступ к прогнозам</b>\n'
-      + 'После подтверждения пополнения вы откроете эксклюзивные прогнозы.\n\n'
-      + '💡 <i>Чем больше играете, тем больше выигрываете!</i>',
-    instructions_back: '🔙 Назад в меню',
-    status_registered:     '✅ Ваш аккаунт 1Win привязан',
-    status_not_registered: '❌ Аккаунт 1Win ещё не привязан',
-    status_deposited:      '💰 Пополнение подтверждено: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ Пополнение пока не обнаружено',
-    status_vip:            '🎉 У вас есть VIP-доступ! Нажмите кнопку ниже для просмотра прогнозов.',
-    status_not_vip:        '🔒 Пополните счёт не менее чем на <b>{MIN_DEPOSIT}$</b> для доступа к прогнозам.',
-    status_send_id:        '📝 Чтобы привязать аккаунт, отправьте свой <b>ID 1Win</b> (число от 5 до 15 цифр) в этот чат.',
-    lang_select:           '🌐 Выберите ваш язык:',
-    lang_changed:          '✅ Язык успешно обновлён!',
-    id_saved:              '✅ Ваш ID 1Win (<code>{ID}</code>) успешно сохранён!\n\nВаш аккаунт теперь привязан.',
-    id_already_registered: 'ℹ️ У вас уже привязан аккаунт 1Win.',
-    id_invalid:            '⚠️ Это не похоже на корректный ID 1Win. Пожалуйста, введите число от 5 до 15 цифр.',
-  },
-
-  pt: {
-    welcome:
-      '🃏 <b>Bem-vindo ao ROVAS</b> — seu assistente inteligente de previsões!\n\n'
-      + 'O ROVAS oferece previsões analisadas com cuidado para jogos de cassino. '
-      + 'Siga os passos, registre-se, faça seu depósito e desbloqueie previsões exclusivas.\n\n'
-      + 'Pronto para elevar o seu jogo ao próximo nível? Vamos lá! 🚀',
-    menu_register:     '🎰 Criar minha conta 1Win',
-    menu_instructions: '📖 Como funciona o ROVAS?',
-    menu_status:       '📊 Meu status',
-    menu_language:     '🌐 Mudar idioma',
-    menu_predictions:  '⭐ Acessar previsões',
-    instructions_text:
-      'Como começar com o ROVAS:\n\n'
-      + '1️⃣ <b>Crie sua conta 1Win</b>\n'
-      + 'Clique no botão de registro e complete seu cadastro no 1Win.\n\n'
-      + '2️⃣ <b>Faça um depósito</b>\n'
-      + 'Deposite pelo menos <b>{MIN_DEPOSIT}$</b> para ativar o acesso VIP.\n\n'
-      + '3️⃣ <b>Acesse as previsões</b>\n'
-      + 'Assim que seu depósito for confirmado, as previsões exclusivas serão desbloqueadas.\n\n'
-      + '💡 <i>Quanto mais você joga, mais você ganha!</i>',
-    instructions_back: '🔙 Voltar ao menu',
-    status_registered:     '✅ Sua conta 1Win está vinculada',
-    status_not_registered: '❌ Nenhuma conta 1Win vinculada ainda',
-    status_deposited:      '💰 Depósito confirmado: <b>{AMOUNT}$</b>',
-    status_no_deposit:     '⚠️ Nenhum depósito detectado ainda',
-    status_vip:            '🎉 Você tem acesso VIP! Clique no botão abaixo para ver as previsões.',
-    status_not_vip:        '🔒 Deposite pelo menos <b>{MIN_DEPOSIT}$</b> para desbloquear as previsões.',
-    status_send_id:        '📝 Para vincular sua conta, envie seu <b>ID 1Win</b> (um número de 5 a 15 dígitos) neste chat.',
-    lang_select:           '🌐 Escolha seu idioma preferido:',
-    lang_changed:          '✅ Idioma atualizado com sucesso!',
-    id_saved:              '✅ Seu ID 1Win (<code>{ID}</code>) foi salvo com sucesso!\n\nSua conta está agora vinculada.',
-    id_already_registered: 'ℹ️ Você já tem uma conta 1Win vinculada.',
-    id_invalid:            '⚠️ Isso não parece um ID 1Win válido. Por favor, insira um número de 5 a 15 dígitos.',
-  },
+// ─── LANGUES ───
+const LANGS = {
+    fr: { flag: '\uD83C\uDDEB\uD83C\uDDF7', rate: 666.67, symbol: 'FCFA', native: 'Francais' },
+    en: { flag: '\uD83C\uDDEC\uD83C\uDDE7', rate: 1, symbol: '$', native: 'English' },
+    hi: { flag: '\uD83C\uDDEE\uD83C\uDDF3', rate: 83.5, symbol: '\u20B9', native: 'Hindi' },
+    uz: { flag: '\uD83C\uDDFA\uD83C\uDDFF', rate: 12650, symbol: "so'm", native: "O'zbek" },
+    es: { flag: '\uD83C\uDDEA\uD83C\uDDF8', rate: 0.92, symbol: '\u20AC', native: 'Espanol' },
+    az: { flag: '\uD83C\uDDE6\uD83C\uDDFF', rate: 1.7, symbol: '\u20BC', native: 'Az\u0259rbaycan' },
+    tr: { flag: '\uD83C\uDDF9\uD83C\uDDF7', rate: 34, symbol: '\u20BA', native: 'Turkce' },
+    ar: { flag: '\uD83C\uDDF8\uD83C\uDDE6', rate: 3.75, symbol: '\u0631.\u0633', native: '\u0627\u0644\u0639\u0631\u0628\u064A\u0629' },
+    ru: { flag: '\uD83C\uDDF7\uD83C\uDDFA', rate: 91.5, symbol: '\u20BD', native: '\u0420\u0443\u0441\u0441\u043A\u0438\u0439' },
+    pt: { flag: '\uD83C\uDDF5\uD83C\uDDF9', rate: 5.5, symbol: 'R$', native: 'Portugues' }
 };
 
-// ── Translation helper ─────────────────────────────────────────────────
-function t(lang, key, vars) {
-  const fallback = i18n.fr[key] || key;
-  let text = (i18n[lang] && i18n[lang][key]) || fallback;
-  if (vars) {
-    for (const [k, v] of Object.entries(vars)) {
-      text = text.split(k).join(String(v));
-    }
-  }
-  return text;
+function depositStr(lang) {
+    const l = LANGS[lang] || LANGS.fr;
+    const local = Math.round(MIN_DEPOSIT * l.rate);
+    if (lang === 'en') return `<b>$${MIN_DEPOSIT}</b>`;
+    return `<b>${MIN_DEPOSIT}$ (${local} ${l.symbol})</b>`;
 }
 
-// ── Supported language list ────────────────────────────────────────────
-const LANGUAGES = [
-  { code: 'fr', flag: '🇫🇷', label: 'Français' },
-  { code: 'en', flag: '🇬🇧', label: 'English' },
-  { code: 'hi', flag: '🇮🇳', label: 'हिन्दी' },
-  { code: 'uz', flag: '🇺🇿', label: 'O\'zbek' },
-  { code: 'es', flag: '🇪🇸', label: 'Español' },
-  { code: 'az', flag: '🇦🇿', label: 'Azərbaycan' },
-  { code: 'tr', flag: '🇹🇷', label: 'Türkçe' },
-  { code: 'ar', flag: '🇸🇦', label: 'العربية' },
-  { code: 'ru', flag: '🇷🇺', label: 'Русский' },
-  { code: 'pt', flag: '🇧🇷', label: 'Português' },
-];
-
-// ═══════════════════════════════════════════════════════════════════════
-// Database helpers
-// ═══════════════════════════════════════════════════════════════════════
-
-/**
- * Upsert user into the users table. Returns the user row.
- */
-async function upsertUser(telegramId, username, firstName, lastName) {
-  const { rows } = await query(
-    `INSERT INTO users (telegram_id, username, first_name, last_name, updated_at)
-     VALUES ($1::int, $2, $3, $4, NOW())
-     ON CONFLICT (telegram_id)
-     DO UPDATE SET username = $2, first_name = $3, last_name = $4, updated_at = NOW()
-     RETURNING *`,
-    [telegramId, username || '', firstName || '', lastName || ''],
-  );
-  return rows[0];
+function depositStrPlain(lang) {
+    const l = LANGS[lang] || LANGS.fr;
+    const local = Math.round(MIN_DEPOSIT * l.rate);
+    if (lang === 'en') return `$${MIN_DEPOSIT}`;
+    return `${MIN_DEPOSIT}$ (${local} ${l.symbol})`;
 }
 
-/**
- * Fetch a single user by telegram_id.
- */
-async function getUser(telegramId) {
-  const { rows } = await query(
-    'SELECT * FROM users WHERE telegram_id = $1::int',
-    [telegramId],
-  );
-  return rows[0] || null;
+// ─── TEXTES i18n ───
+const T = {};
+function t(key, lang) { return (T[lang] && T[lang][key]) || (T.fr && T.fr[key]) || key; }
+
+T.fr = {
+    select_language: `\uD83C\uDF10 Veuillez choisir votre langue\nPlease select your language`,
+    channel_required: `Veuillez rejoindre notre canal pour continuer.`,
+    welcome: `<b>\uD83C\uDFB0 Bienvenue sur ROVAS</b>\n\nLe meilleur bot de predictions casino.\n\n<b>\u2776.</b> Inscrivez-vous avec le code promo <b>${PROMO}</b>\n<b>\u2777.</b> Rechargez minimum ${depositStr('fr')}\n<b>\u2778.</b> Accedez aux predictions VIP`,
+    instructions: `<b>\u2753 Comment ca marche ?</b>\n\n<b>\u2776.</b> <b>Inscrivez-vous</b> sur 1Win avec le code promo <b>${PROMO}</b>\n<b>\u2777.</b> <b>Rechargez</b> minimum ${depositStr('fr')}\n<b>\u2778.</b> <b>Accedez</b> aux predictions en direct`,
+    register: `<b>\uD83D\uDCDD Inscription</b>\n\nVeuillez d'abord vous inscrire en cliquant sur le lien ci-dessous.\n\nCode promo : <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 Rechargement requis</b>\n\nVotre inscription est confirmee.\n\nEffectuez un depot minimum de ${depositStr('fr')} puis cliquez sur <b>Predictions</b>.`,
+    deposit_small: `<b>Depot insuffisant</b>\n\nDepot detecte : <b>{amount}$</b>\nMinimum requis : ${depositStr('fr')}\n\nVeuillez completer votre depot.`,
+    not_registered: `<b>Inscription non detectee</b>\n\nAssurez-vous d'utiliser le code promo <b>${PROMO}</b>.\n\nPatientez quelques minutes puis reessayez.`,
+    access_granted: `<b>\u2B50 VIP Accorde !</b>\n\nCliquez ci-dessous pour acceder aux predictions :`,
+    already_registered: `<b>\uD83D\uDC10 Verification ID</b>\n\nEnvoyez votre ID 1Win pour verification.\n\nAssurez-vous d'etre inscrit avec le code promo <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 Compte lie !</b>\n\nVotre ID 1Win est associe a votre Telegram.`,
+    already_registered_already: `Cet ID est deja lie a un autre compte.`,
+    already_registered_notfound: `<b>ID non trouve</b>\n\nInscrivez-vous d'abord avec le code promo <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Langue changee`,
+    register_first: `Inscrivez-vous d'abord.`,
+    btn_register: `S'inscrire`,
+    btn_instructions: `Comment ca marche ?`,
+    btn_already: `Deja inscrit`,
+    btn_predictions: `\u26A1 Predictions`,
+    btn_back: `\u2190 Retour`,
+    btn_register_now: `S'inscrire maintenant`,
+    btn_deposit: `Recharger`,
+    btn_join: `Rejoindre le canal`,
+    btn_language: `Langue`,
+    btn_channel: `Verifier`,
+    btn_change_language: `\uD83C\uDF10 Changer la langue`,
+    deposit_insufficient_no: `<b>Depot requis</b>\n\nEffectuez un depot minimum de ${depositStr('fr')} pour acceder aux predictions.`,
+    missing: `<b>Il vous manque <b>{remaining}$</b> ({local})</b>\n\nCompletez votre depot.`,
+    channel_required_alert: `Rejoignez le canal d'abord.`
+};
+
+T.en = {
+    select_language: `\uD83C\uDF10 Please select your language\nVeuillez choisir votre langue`,
+    channel_required: `Please join our channel to continue.`,
+    welcome: `<b>\uD83C\uDFB0 Welcome to ROVAS</b>\n\nThe best casino prediction bot.\n\n<b>\u2776.</b> Register with promo code <b>${PROMO}</b>\n<b>\u2777.</b> Deposit minimum ${depositStr('en')}\n<b>\u2778.</b> Access VIP predictions`,
+    instructions: `<b>\u2753 How does it work?</b>\n\n<b>\u2776.</b> <b>Register</b> on 1Win with promo code <b>${PROMO}</b>\n<b>\u2777.</b> <b>Deposit</b> minimum ${depositStr('en')}\n<b>\u2778.</b> <b>Access</b> live predictions`,
+    register: `<b>\uD83D\uDCDD Registration</b>\n\nPlease register first by clicking the link below.\n\nPromo code: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 Deposit required</b>\n\nYour registration is confirmed.\n\nMake a minimum deposit of ${depositStr('en')} then click <b>Predictions</b>.`,
+    deposit_small: `<b>Insufficient deposit</b>\n\nDetected: <b>{amount}$</b>\nMinimum required: ${depositStr('en')}\n\nPlease complete your deposit.`,
+    not_registered: `<b>Registration not detected</b>\n\nMake sure to use promo code <b>${PROMO}</b>.\n\nWait a few minutes then try again.`,
+    access_granted: `<b>\u2B50 VIP Granted!</b>\n\nClick below to access predictions:`,
+    already_registered: `<b>\uD83D\uDC10 ID Verification</b>\n\nSend your 1Win ID for verification.\n\nMake sure you registered with promo code <b>${PROMO}</b>.`,
+    already_registered_success: `<b>\u2705 Account linked!</b>\n\nYour 1Win ID is now associated with your Telegram.`,
+    already_registered_already: `This ID is already linked to another account.`,
+    already_registered_notfound: `<b>ID not found</b>\n\nPlease register first with promo code <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Language changed`,
+    register_first: `Register first.`,
+    btn_register: `Register`,
+    btn_instructions: `How does it work?`,
+    btn_already: `Already registered`,
+    btn_predictions: `\u26A1 Predictions`,
+    btn_back: `\u2190 Back`,
+    btn_register_now: `Register now`,
+    btn_deposit: `Deposit`,
+    btn_join: `Join channel`,
+    btn_language: `Language`,
+    btn_channel: `Verify`,
+    btn_change_language: `\uD83C\uDF10 Change language`,
+    deposit_insufficient_no: `<b>Deposit required</b>\n\nMake a minimum deposit of ${depositStr('en')} to access predictions.`,
+    missing: `<b>You need <b>{remaining}$</b> more ({local})</b>\n\nComplete your deposit.`,
+    channel_required_alert: `Join the channel first.`
+};
+
+T.hi = {
+    select_language: `\uD83C\uDF10 \u0905\u092A\u0928\u0940 \u092D\u093E\u0937\u093E \u091A\u0941\u0928\u0947\u0902\nPlease select your language`,
+    channel_required: `\u091C\u093E\u0930\u0940 \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0939\u092E\u093E\u0930\u0947 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964`,
+    welcome: `<b>\uD83C\uDFB0 ROVAS \u092E\u0947\u0902 \u0906\u092A\u0915\u093E \u0938\u094D\u0935\u093E\u0917\u0924 \u0939\u0948</b>\n\n\u0938\u092C\u0938\u0947 \u0905\u091A\u094D\u091B\u093E \u0915\u0948\u0938\u0940\u0928\u094B \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u092C\u0949\u091F\u0964\n\n<b>\u2776.</b> \u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\n<b>\u2777.</b> \u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} \u091C\u092E\u093E \u0915\u0930\u0947\u0902\n<b>\u2778.</b> VIP \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938 \u090F\u0915\u094D\u0938\u0947\u0938 \u0915\u0930\u0947\u0902`,
+    instructions: `<b>\u2753 \u092F\u0939 \u0915\u0948\u0938\u0947 \u0915\u093E\u092E \u0915\u0930\u0924\u093E \u0939\u0948?</b>\n\n<b>\u2776.</b> \u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 1Win \u092A\u0930 <b>\u0930\u091C\u093F\u0938\u094D\u091F\u0930</b> \u0915\u0930\u0947\u0902\n<b>\u2777.</b> \u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} <b>\u091C\u092E\u093E</b> \u0915\u0930\u0947\u0902\n<b>\u2778.</b> \u0932\u093E\u0907\u0935 \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938 <b>\u090F\u0915\u094D\u0938\u0947\u0938</b> \u0915\u0930\u0947\u0902`,
+    register: `<b>\uD83D\uDCDD \u0930\u091C\u093F\u0938\u094D\u091F\u094D\u0930\u0947\u0936\u0928</b>\n\n\u0928\u0940\u091A\u0947 \u0926\u093F\u090F \u0917\u090F \u0932\u093F\u0902\u0915 \u092A\u0930 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0915\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\u0964\n\n\u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 \u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915</b>\n\n\u0906\u092A\u0915\u093E \u0930\u091C\u093F\u0938\u094D\u091F\u094D\u0930\u0947\u0936\u0928 \u092A\u0941\u0937\u094D\u091F\u093F \u0939\u094B \u0917\u0908\u0964\n\n${depositStr('hi')} \u0928\u094D\u092F\u0942\u0928\u0924\u092E \u091C\u092E\u093E \u0915\u0930\u0947\u0902 \u0924\u092C <b>\u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938</b> \u092A\u0930 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0947\u0902\u0964`,
+    deposit_small: `<b>\u0905\u092A\u0930\u094D\u092F\u093E\u092A\u094D\u0924 \u091C\u092E\u093E</b>\n\n\u092A\u093E\u092F\u093E \u0917\u092F\u093E: <b>{amount}$</b>\n\u0906\u0935\u0936\u094D\u092F\u0915: ${depositStr('hi')}\n\n\u0915\u0943\u092A\u092F\u093E \u091C\u092E\u093E \u092A\u0942\u0930\u093E \u0915\u0930\u0947\u0902\u0964`,
+    not_registered: `<b>\u0930\u091C\u093F\u0938\u094D\u091F\u094D\u0930\u0947\u0936\u0928 \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E</b>\n\n\u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0915\u093E \u0909\u092A\u092F\u094B\u0917 \u0915\u0930\u0947\u0902\u0964`,
+    access_granted: `<b>\u2B50 VIP \u090F\u0915\u094D\u0938\u0947\u0938!</b>\n\n\u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938 \u090F\u0915\u094D\u0938\u0947\u0938 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0928\u0940\u091A\u0947 \u0915\u094D\u0932\u093F\u0915 \u0915\u0930\u0947\u0902:`,
+    already_registered: `<b>\uD83D\uDC10 ID \u0935\u0947\u0930\u093F\u092B\u093F\u0915\u0947\u0936\u0928</b>\n\n\u0935\u0947\u0930\u093F\u092B\u093F\u0915\u0947\u0936\u0928 \u0915\u0947 \u0932\u093F\u090F \u0905\u092A\u0928\u093E 1Win ID \u092D\u0947\u091C\u0947\u0902\u0964`,
+    already_registered_success: `<b>\u2705 \u0916\u093E\u0924\u093E \u091C\u094B\u0921\u093C\u093E \u0917\u092F\u093E!</b>`,
+    already_registered_already: `\u092F\u0939 ID \u092A\u0939\u0932\u0947 \u0938\u0947 \u0932\u093F\u0902\u0915 \u0939\u0948\u0964`,
+    already_registered_notfound: `<b>ID \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E</b>\n\n\u092A\u094D\u0930\u094B\u092E\u094B \u0915\u094B\u0921 <b>${PROMO}</b> \u0938\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\u0964`,
+    language_changed: `\u2705 \u092D\u093E\u0937\u093E \u092C\u0926\u0932\u0940 \u0917\u0908`,
+    register_first: `\u092A\u0939\u0932\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902\u0964`,
+    btn_register: `\u0930\u091C\u093F\u0938\u094D\u091F\u0930`,
+    btn_instructions: `\u0915\u0948\u0938\u0947 \u0915\u093E\u092E \u0915\u0930\u0924\u093E \u0939\u0948?`,
+    btn_already: `\u092A\u0939\u0932\u0947 \u0938\u0947 \u0930\u091C\u093F\u0938\u094D\u091F\u0930`,
+    btn_predictions: `\u26A1 \u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928\u094D\u0938`,
+    btn_back: `\u2190 \u0935\u093E\u092A\u0938`,
+    btn_register_now: `\u0905\u092D\u0940 \u0930\u091C\u093F\u0938\u094D\u091F\u0930 \u0915\u0930\u0947\u0902`,
+    btn_deposit: `\u091C\u092E\u093E \u0915\u0930\u0947\u0902`,
+    btn_join: `\u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902`,
+    btn_language: `\u092D\u093E\u0937\u093E`,
+    btn_channel: `\u0938\u0924\u094D\u092F\u093E\u092A\u093F\u0924 \u0915\u0930\u0947\u0902`,
+    btn_change_language: `\uD83C\uDF10 \u092D\u093E\u0937\u093E \u092C\u0926\u0932\u0947\u0902`,
+    deposit_insufficient_no: `<b>\u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915</b>\n\n${depositStr('hi')} \u0928\u094D\u092F\u0942\u0928\u0924\u092E \u091C\u092E\u093E \u0915\u0930\u0947\u0902\u0964`,
+    missing: `<b>\u0906\u092A\u0915\u094B <b>{remaining}$</b> ({local}) \u0914\u0930 \u091A\u093E\u0939\u093F\u090F</b>`,
+    channel_required_alert: `\u092A\u0939\u0932\u0947 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964`
+};
+
+T.uz = {
+    select_language: `\uD83C\uDF10 Tilni tanlang\nPlease select your language`,
+    channel_required: `Davom etish uchun kanalimizga qo'shiling.`,
+    welcome: `<b>\uD83C\uDFB0 ROVAS ga xush kelibsiz</b>\n\nEng yaxshi casino taxmin boti.\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> bilan ro'yxatdan o'ting\n<b>\u2777.</b> Kamida ${depositStr('uz')} to'ldiring\n<b>\u2778.</b> VIP taxminlarga kiring`,
+    instructions: `<b>\u2753 Qanday ishlaydi?</b>\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> bilan 1Win da <b>ro'yxatdan o'ting</b>\n<b>\u2777.</b> Kamida ${depositStr('uz')} <b>to'ldiring</b>\n<b>\u2778.</b> Jonli taxminlarga <b>kiring</b>`,
+    register: `<b>\uD83D\uDCDD Ro'yxatdan o'tish</b>\n\nPastdagi havola orqali ro'yxatdan o'ting.\n\nPromo kod: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 To'ldirish kerak</b>\n\nRo'yxatingiz tasdiqlandi.\n\nKamida ${depositStr('uz')} to'ldiring, keyin <b>Taxminlar</b> tugmasini bosing.`,
+    deposit_small: `<b>Yetarli emas</b>\n\n aniqlandi: <b>{amount}$</b>\nKerak: ${depositStr('uz')}`,
+    not_registered: `<b>Ro'yxat topilmadi</b>\n\nPromo kod <b>${PROMO}</b> bilan ro'yxatdan o'ting.`,
+    access_granted: `<b>\u2B50 VIP ruxsat!</b>\n\nTaxminlarga kirish uchun pastga bosing:`,
+    already_registered: `<b>\uD83D\uDC10 ID tekshirish</b>\n\n1Win ID ingizni yuboring.\n\nPromo kod <b>${PROMO}</b> bilan ro'yxatdan o'tganingizga ishonch hosil qiling.`,
+    already_registered_success: `<b>\u2705 Hisob bog'landi!</b>`,
+    already_registered_already: `Bu ID boshqa hisobga bog'langan.`,
+    already_registered_notfound: `<b>Topilmadi</b>\n\nPromo kod <b>${PROMO}</b> bilan ro'yxatdan o'ting.`,
+    language_changed: `\u2705 Til o'zgartirildi`,
+    register_first: `Avval ro'yxatdan o'ting.`,
+    btn_register: `Ro'yxatdan o'tish`,
+    btn_instructions: `Qanday ishlaydi?`,
+    btn_already: `Avval ro'yxatdan`,
+    btn_predictions: `\u26A1 Taxminlar`,
+    btn_back: `\u2190 Orqaga`,
+    btn_register_now: `Hozir ro'yxatdan o'ting`,
+    btn_deposit: `To'ldiring`,
+    btn_join: `Kanalga qo'shiling`,
+    btn_language: `Til`,
+    btn_channel: `Tekshirish`,
+    btn_change_language: `\uD83C\uDF10 Tilni o'zgartirish`,
+    deposit_insufficient_no: `<b>To'ldirish kerak</b>\n\n${depositStr('uz')} kamida to'ldiring.`,
+    missing: `<b>Sizga yana <b>{remaining}$</b> ({local}) kerak</b>`,
+    channel_required_alert: `Avval kanalga qo'shiling.`
+};
+
+T.es = {
+    select_language: `\uD83C\uDF10 Seleccione su idioma\nPlease select your language`,
+    channel_required: `Unase a nuestro canal para continuar.`,
+    welcome: `<b>\uD83C\uDFB0 Bienvenido a ROVAS</b>\n\nEl mejor bot de predicciones casino.\n\n<b>\u2776.</b> Registrese con el codigo <b>${PROMO}</b>\n<b>\u2777.</b> Deposite minimo ${depositStr('es')}\n<b>\u2778.</b> Acceda a predicciones VIP`,
+    instructions: `<b>\u2753 Como funciona?</b>\n\n<b>\u2776.</b> <b>Registrese</b> en 1Win con codigo <b>${PROMO}</b>\n<b>\u2777.</b> <b>Deposite</b> minimo ${depositStr('es')}\n<b>\u2778.</b> <b>Acceda</b> a predicciones en vivo`,
+    register: `<b>\uD83D\uDCDD Registro</b>\n\nRegistrese primero haciendo clic en el enlace.\n\nCodigo: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 Deposito requerido</b>\n\nSu registro esta confirmado.\n\nDeposite minimo ${depositStr('es')} luego clic en <b>Predicciones</b>.`,
+    deposit_small: `<b>Deposito insuficiente</b>\n\nDetectado: <b>{amount}$</b>\nRequerido: ${depositStr('es')}`,
+    not_registered: `<b>Registro no detectado</b>\n\nUse codigo <b>${PROMO}</b>.`,
+    access_granted: `<b>\u2B50 VIP Concedido!</b>\n\nClic abajo para predicciones:`,
+    already_registered: `<b>\uD83D\uDC10 Verificacion ID</b>\n\nEnvie su ID 1Win para verificacion.`,
+    already_registered_success: `<b>\u2705 Cuenta vinculada!</b>`,
+    already_registered_already: `Este ID ya esta vinculado.`,
+    already_registered_notfound: `<b>ID no encontrado</b>\n\nRegistrese con codigo <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Idioma cambiado`,
+    register_first: `Registrese primero.`,
+    btn_register: `Registrarse`,
+    btn_instructions: `Como funciona?`,
+    btn_already: `Ya registrado`,
+    btn_predictions: `\u26A1 Predicciones`,
+    btn_back: `\u2190 Volver`,
+    btn_register_now: `Registrarse ahora`,
+    btn_deposit: `Depositar`,
+    btn_join: `Unirse al canal`,
+    btn_language: `Idioma`,
+    btn_channel: `Verificar`,
+    btn_change_language: `\uD83C\uDF10 Cambiar idioma`,
+    deposit_insufficient_no: `<b>Deposito requerido</b>\n\nDeposite minimo ${depositStr('es')}.`,
+    missing: `<b>Le falta <b>{remaining}$</b> ({local})</b>`,
+    channel_required_alert: `Unase al canal primero.`
+};
+
+T.az = {
+    select_language: `\uD83C\uDF10 Dilinizi secin\nPlease select your language`,
+    channel_required: `Davam etmak ucun kanalimiza qosulun.`,
+    welcome: `<b>\uD83C\uDFB0 ROVAS-a xos geldiniz</b>\n\n\u018Fn yaxsi casino proqnoz botu.\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ila qeydiyyatdan kecin\n<b>\u2777.</b> Minimum ${depositStr('az')} daxil edin\n<b>\u2778.</b> VIP proqnozlara daxil olun`,
+    instructions: `<b>\u2753 Nec\u0259 isleyir?</b>\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ila 1Win-da <b>qeydiyyat</b>\n<b>\u2777.</b> Minimum ${depositStr('az')} <b>daxil edin</b>\n<b>\u2778.</b> Canli proqnozlara <b>daxil olun</b>`,
+    register: `<b>\uD83D\uDCDD Qeydiyyat</b>\n\nLink vasit\u0259sil\u0259 qeydiyyatdan kecin.\n\nPromo kod: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 Doldurma lazimdir</b>\n\nQeydiyyatiniz tesdiqlendi.\n\nMinimum ${depositStr('az')} daxil edin, sonra <b>Proqnozlar</b> basin.`,
+    deposit_small: `<b>Kifayet qeder deyil</b>\n\nAşkar: <b>{amount}$</b>\nLazim: ${depositStr('az')}`,
+    not_registered: `<b>Qeydiyyat tapilmadi</b>\n\nPromo kod <b>${PROMO}</b> istifade edin.`,
+    access_granted: `<b>\u2B50 VIP Giris!</b>\n\nProqnozlara daxil olmaq ucun:`,
+    already_registered: `<b>\uD83D\uDC10 ID yoxlama</b>\n\n1Win ID-nizi gonderin.`,
+    already_registered_success: `<b>\u2705 Hesab baglandi!</b>`,
+    already_registered_already: `Bu ID artiq baglanib.`,
+    already_registered_notfound: `<b>Tapilmadi</b>\n\nPromo kod <b>${PROMO}</b> ila qeydiyyatdan kecin.`,
+    language_changed: `\u2705 Dil deyisdirildi`,
+    register_first: `Evvelce qeydiyyatdan kecin.`,
+    btn_register: `Qeydiyyat`,
+    btn_instructions: `Nec\u0259 isleyir?`,
+    btn_already: `Artiq qeydiyyatda`,
+    btn_predictions: `\u26A1 Proqnozlar`,
+    btn_back: `\u2190 Geri`,
+    btn_register_now: `Indi qeydiyyat`,
+    btn_deposit: `Daxil edin`,
+    btn_join: `Kanala qosulun`,
+    btn_language: `Dil`,
+    btn_channel: `Yoxlayin`,
+    btn_change_language: `\uD83C\uDF10 Dili deyis`,
+    deposit_insufficient_no: `<b>Doldurma lazimdir</b>\n\nMinimum ${depositStr('az')} daxil edin.`,
+    missing: `<b>Siz\u0259 <b>{remaining}$</b> ({local}) lazimdir</b>`,
+    channel_required_alert: `Evvelce kanala qosulun.`
+};
+
+T.tr = {
+    select_language: `\uD83C\uDF10 Lutfen dilinizi secin\nPlease select your language`,
+    channel_required: `Devam etmek icin kanalimiza katilin.`,
+    welcome: `<b>\uD83C\uDFB0 ROVAS'a hos geldiniz</b>\n\nEn iyi casino tahmin botu.\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ile kayit olun\n<b>\u2777.</b> Minimum ${depositStr('tr')} yatirin\n<b>\u2778.</b> VIP tahminlere erisin`,
+    instructions: `<b>\u2753 Nasil calisir?</b>\n\n<b>\u2776.</b> Promo kod <b>${PROMO}</b> ile 1Win'e <b>kayit olun</b>\n<b>\u2777.</b> Minimum ${depositStr('tr')} <b>yatirin</b>\n<b>\u2778.</b> Canli tahminlere <b>erisin</b>`,
+    register: `<b>\uD83D\uDCDD Kayit</b>\n\nAsagidaki linkten kayit olun.\n\nPromo kod: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 Yatirim gerekli</b>\n\nKayitiniz onaylandi.\n\nMinimum ${depositStr('tr')} yatirin, sonra <b>Tahminler</b> tiklayin.`,
+    deposit_small: `<b>Yetersiz yatirim</b>\n\nTespit: <b>{amount}$</b>\nGerek: ${depositStr('tr')}`,
+    not_registered: `<b>Kayit bulunamadi</b>\n\nPromo kod <b>${PROMO}</b> kullanin.`,
+    access_granted: `<b>\u2B50 VIP Erisim!</b>\n\nTahminlere erismek icin:`,
+    already_registered: `<b>\uD83D\uDC10 ID Dogrulama</b>\n\n1Win ID'nizi gonderin.`,
+    already_registered_success: `<b>\u2705 Hesap baglandi!</b>`,
+    already_registered_already: `Bu ID baska hesaba bagli.`,
+    already_registered_notfound: `<b>ID bulunamadi</b>\n\nPromo kod <b>${PROMO}</b> ile kayit olun.`,
+    language_changed: `\u2705 Dil degistirildi`,
+    register_first: `Once kayit olun.`,
+    btn_register: `Kayit ol`,
+    btn_instructions: `Nasil calisir?`,
+    btn_already: `Zaten kayitli`,
+    btn_predictions: `\u26A1 Tahminler`,
+    btn_back: `\u2190 Geri`,
+    btn_register_now: `Simdi kayit ol`,
+    btn_deposit: `Yatir`,
+    btn_join: `Kanala katil`,
+    btn_language: `Dil`,
+    btn_channel: `Dogrula`,
+    btn_change_language: `\uD83C\uDF10 Dili degistir`,
+    deposit_insufficient_no: `<b>Yatirim gerekli</b>\n\nMinimum ${depositStr('tr')} yatirin.`,
+    missing: `<b>Eksik: <b>{remaining}$</b> ({local})</b>`,
+    channel_required_alert: `Once kanala katilin.`
+};
+
+T.ar = {
+    select_language: `\uD83C\uDF10 \u0627\u062E\u062A\u0631 \u0644\u063A\u062A\u0643\nPlease select your language`,
+    channel_required: `\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0642\u0646\u0627\u062A\u0646\u0627 \u0644\u0644\u0645\u062A\u0627\u0628\u0639\u0629.`,
+    welcome: `<b>\uD83C\uDFB0 \u0645\u0631\u062D\u0628\u0627 \u0628\u0643 \u0641\u064A ROVAS</b>\n\n\u0623\u0641\u0636\u0644 \u0631\u0648\u0628\u0648\u062A \u062A\u0648\u0642\u0639\u0627\u062A \u0627\u0644\u0643\u0627\u0632\u064A\u0646\u0648.\n\n<b>\u2776.</b> \u0633\u062C\u0644 \u0628\u0631\u0645\u0632 <b>${PROMO}</b>\n<b>\u2777.</b> \u0623\u0648\u062F\u0639 ${depositStr('ar')} \u062D\u062F \u0623\u062F\u0646\u0649\n<b>\u2778.</b> \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u062A\u0648\u0642\u0639\u0627\u062A VIP`,
+    instructions: `<b>\u2753 \u0643\u064A\u0641 \u064A\u0639\u0645\u0644\u061F</b>\n\n<b>\u2776.</b> <b>\u0633\u062C\u0644</b> \u0641\u064A 1Win \u0628\u0631\u0645\u0632 <b>${PROMO}</b>\n<b>\u2777.</b> <b>\u0623\u0648\u062F\u0639</b> ${depositStr('ar')} \u062D\u062F \u0623\u062F\u0646\u0649\n<b>\u2778.</b> <b>\u0627\u0644\u0648\u0635\u0648\u0644</b> \u0644\u0644\u062A\u0648\u0642\u0639\u0627\u062A`,
+    register: `<b>\uD83D\uDCDD \u0627\u0644\u062A\u0633\u062C\u064A\u0644</b>\n\n\u0627\u0636\u063A\u0637 \u0639\u0644\u0649 \u0627\u0644\u0631\u0627\u0628\u0637 \u0623\u062F\u0646\u0627\u0647.\n\n\u0627\u0644\u0631\u0645\u0632: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 \u0625\u064A\u062F\u0627\u0639 \u0645\u0637\u0644\u0648\u0628</b>\n\n\u062A\u0633\u062C\u064A\u0644\u0643 \u0645\u0624\u0643\u062F.\n\n\u0623\u0648\u062F\u0639 ${depositStr('ar')} \u062B\u0645 <u0627\u0636\u063A\u0637 <b>\u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A</b>.</u>`,
+    deposit_small: `<b>\u0625\u064A\u062F\u0627\u0639 \u063A\u064A\u0631 \u0643\u0627\u0641</b>\n\n\u0645\u0643\u062A\u0634\u0641: <b>{amount}$</b>\n\u0627\u0644\u0645\u0637\u0644\u0648\u0628: ${depositStr('ar')}`,
+    not_registered: `<b>\u0644\u0645 \u064A\u062A\u0645 \u0627\u0643\u062A\u0634\u0627\u0641 \u0627\u0644\u062A\u0633\u062C\u064A\u0644</b>\n\n\u0627\u0633\u062A\u062E\u062F\u0645 \u0631\u0645\u0632 <b>${PROMO}</b>.`,
+    access_granted: `<b>\u2B50 VIP \u0645\u0646\u062D!</b>\n\n\u0627\u0636\u063A\u0637 \u0623\u062F\u0646\u0627\u0647:`,
+    already_registered: `<b>\uD83D\uDC10 \u062A\u062D\u0642\u0642 \u0645\u0646 \u0627\u0644\u0645\u0639\u0631\u0641</b>\n\n\u0623\u0631\u0633\u0644 \u0645\u0639\u0631\u0641 1Win.`,
+    already_registered_success: `<b>\u2705 \u062A\u0645 \u0627\u0644\u0631\u0628\u0637!</b>`,
+    already_registered_already: `\u0647\u0630\u0627 \u0627\u0644\u0645\u0639\u0631\u0641 \u0645\u0631\u0628\u0648\u0637 \u0628\u0627\u0644\u0641\u0639\u0644.`,
+    already_registered_notfound: `<b>\u063A\u064A\u0631 \u0645\u0648\u062C\u0648\u062F</b>\n\n\u0633\u062C\u0644 \u0628\u0631\u0645\u0632 <b>${PROMO}</b>.`,
+    language_changed: `\u2705 \u062A\u0645 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629`,
+    register_first: `\u0633\u062C\u0644 \u0623\u0648\u0644\u0627.`,
+    btn_register: `\u062A\u0633\u062C\u064A\u0644`,
+    btn_instructions: `\u0643\u064A\u0641 \u064A\u0639\u0645\u0644\u061F`,
+    btn_already: `\u0645\u0633\u062C\u0644 \u0645\u0633\u0628\u0642\u0627`,
+    btn_predictions: `\u26A1 \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A`,
+    btn_back: `\u2190 \u0631\u062C\u0648\u0639`,
+    btn_register_now: `\u0633\u062C\u0644 \u0627\u0644\u0622\u0646`,
+    btn_deposit: `\u0625\u064A\u062F\u0627\u0639`,
+    btn_join: `\u0627\u0646\u0636\u0645 \u0644\u0644\u0642\u0646\u0627\u0629`,
+    btn_language: `\u0627\u0644\u0644\u063A\u0629`,
+    btn_channel: `\u062A\u062D\u0642\u0642`,
+    btn_change_language: `\uD83C\uDF10 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629`,
+    deposit_insufficient_no: `<b>\u0625\u064A\u062F\u0627\u0639 \u0645\u0637\u0644\u0648\u0628</b>\n\n${depositStr('ar')} \u062D\u062F \u0623\u062F\u0646\u0649.`,
+    missing: `<b>\u064A\u0646\u0642\u0635\u0643 <b>{remaining}$</b> ({local})</b>`,
+    channel_required_alert: `\u0627\u0646\u0636\u0645 \u0644\u0644\u0642\u0646\u0627\u0629 \u0623\u0648\u0644\u0627.`
+};
+
+T.ru = {
+    select_language: `\uD83C\uDF10 \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u044F\u0437\u044B\u043A\nPlease select your language`,
+    channel_required: `\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043D\u0430\u0448\u0435\u043C\u0443 \u043A\u0430\u043D\u0430\u043B\u0443.`,
+    welcome: `<b>\uD83C\uDFB0 \u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 ROVAS</b>\n\n\u041B\u0443\u0447\u0448\u0438\u0439 \u0431\u043E\u0442 \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u043E\u0432 \u043A\u0430\u0437\u0438\u043D\u043E.\n\n<b>\u2776.</b> \u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>\n<b>\u2777.</b> \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}\n<b>\u2778.</b> \u0414\u043E\u0441\u0442\u0443\u043F \u043A VIP \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C`,
+    instructions: `<b>\u2753 \u041A\u0430\u043A \u044D\u0442\u043E \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442?</b>\n\n<b>\u2776.</b> <b>\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C</b> \u043D\u0430 1Win \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>\n<b>\u2777.</b> <b>\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435</b> \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}\n<b>\u2778.</b> <b>\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u0435</b> \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C`,
+    register: `<b>\uD83D\uDCDD \u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F</b>\n\n\u041D\u0430\u0436\u043C\u0438\u0442\u0435 \u043D\u0430 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0438\u0436\u0435.\n\n\u041F\u0440\u043E\u043C\u043E\u043A\u043E\u0434: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 \u0414\u0435\u043F\u043E\u0437\u0438\u0442 \u043D\u0443\u0436\u0435\u043D</b>\n\n\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430.\n\n\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}, \u0437\u0430\u0442\u0435\u043C <b>\u041F\u0440\u043E\u0433\u043D\u043E\u0437\u044B</b>.`,
+    deposit_small: `<b>\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E</b>\n\n\u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u043E: <b>{amount}$</b>\n\u041C\u0438\u043D\u0438\u043C\u0443\u043C: ${depositStr('ru')}`,
+    not_registered: `<b>\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u0430</b>\n\n\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434 <b>${PROMO}</b>.`,
+    access_granted: `<b>\u2B50 VIP \u0414\u043E\u0441\u0442\u0443\u043F!</b>\n\n\u041D\u0430\u0436\u043C\u0438\u0442\u0435 \u043D\u0438\u0436\u0435:`,
+    already_registered: `<b>\uD83D\uDC10 \u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 ID</b>\n\n\u041E\u0442\u043F\u0440\u0430\u0432\u044C\u0442\u0435 \u0432\u0430\u0448 1Win ID.`,
+    already_registered_success: `<b>\u2705 \u0410\u043A\u043A\u0430\u0443\u043D\u0442 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D!</b>`,
+    already_registered_already: `\u042D\u0442\u043E\u0442 ID \u0443\u0436\u0435 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D.`,
+    already_registered_notfound: `<b>ID \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D</b>\n\n\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C \u0441 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u043E\u043C <b>${PROMO}</b>.`,
+    language_changed: `\u2705 \u042F\u0437\u044B\u043A \u0438\u0437\u043C\u0435\u043D\u0451\u043D`,
+    register_first: `\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C.`,
+    btn_register: `\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F`,
+    btn_instructions: `\u041A\u0430\u043A \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442?`,
+    btn_already: `\u0423\u0436\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D`,
+    btn_predictions: `\u26A1 \u041F\u0440\u043E\u0433\u043D\u043E\u0437\u044B`,
+    btn_back: `\u2190 \u041D\u0430\u0437\u0430\u0434`,
+    btn_register_now: `\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C\u0441\u044F`,
+    btn_deposit: `\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C`,
+    btn_join: `\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F`,
+    btn_language: `\u042F\u0437\u044B\u043A`,
+    btn_channel: `\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C`,
+    btn_change_language: `\uD83C\uDF10 \u0421\u043C\u0435\u043D\u0438\u0442\u044C \u044F\u0437\u044B\u043A`,
+    deposit_insufficient_no: `<b>\u0414\u0435\u043F\u043E\u0437\u0438\u0442 \u043D\u0443\u0436\u0435\u043D</b>\n\n\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u043C\u0438\u043D\u0438\u043C\u0443\u043C ${depositStr('ru')}.`,
+    missing: `<b>\u0412\u0430\u043C \u043D\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 <b>{remaining}$</b> ({local})</b>`,
+    channel_required_alert: `\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043A\u0430\u043D\u0430\u043B\u0443.`
+};
+
+T.pt = {
+    select_language: `\uD83C\uDF10 Selecione seu idioma\nPlease select your language`,
+    channel_required: `Junte-se ao nosso canal para continuar.`,
+    welcome: `<b>\uD83C\uDFB0 Bem-vindo ao ROVAS</b>\n\nO melhor bot de previsoes casino.\n\n<b>\u2776.</b> Registre-se com o codigo <b>${PROMO}</b>\n<b>\u2777.</b> Deposite minimo ${depositStr('pt')}\n<b>\u2778.</b> Acesse previsoes VIP`,
+    instructions: `<b>\u2753 Como funciona?</b>\n\n<b>\u2776.</b> <b>Registre-se</b> no 1Win com codigo <b>${PROMO}</b>\n<b>\u2777.</b> <b>Deposite</b> minimo ${depositStr('pt')}\n<b>\u2778.</b> <b>Acesse</b> previsoes ao vivo`,
+    register: `<b>\uD83D\uDCDD Registro</b>\n\nClique no link abaixo para registrar.\n\nCodigo: <b>${PROMO}</b>`,
+    deposit: `<b>\uD83D\uDCB0 Deposito necessario</b>\n\nRegistro confirmado.\n\nDeposite minimo ${depositStr('pt')} depois clique em <b>Previsoes</b>.`,
+    deposit_small: `<b>Deposito insuficiente</b>\n\nDetectado: <b>{amount}$</b>\nRequerido: ${depositStr('pt')}`,
+    not_registered: `<b>Registro nao detectado</b>\n\nUse codigo <b>${PROMO}</b>.`,
+    access_granted: `<b>\u2B50 VIP Concedido!</b>\n\nClique abaixo:`,
+    already_registered: `<b>\uD83D\uDC10 Verificacao ID</b>\n\nEnvie seu ID 1Win.`,
+    already_registered_success: `<b>\u2705 Conta vinculada!</b>`,
+    already_registered_already: `Este ID ja esta vinculado.`,
+    already_registered_notfound: `<b>ID nao encontrado</b>\n\nRegistre com codigo <b>${PROMO}</b>.`,
+    language_changed: `\u2705 Idioma alterado`,
+    register_first: `Registre-se primeiro.`,
+    btn_register: `Registrar`,
+    btn_instructions: `Como funciona?`,
+    btn_already: `Ja registrado`,
+    btn_predictions: `\u26A1 Previsoes`,
+    btn_back: `\u2190 Voltar`,
+    btn_register_now: `Registrar agora`,
+    btn_deposit: `Depositar`,
+    btn_join: `Entrar no canal`,
+    btn_language: `Idioma`,
+    btn_channel: `Verificar`,
+    btn_change_language: `\uD83C\uDF10 Mudar idioma`,
+    deposit_insufficient_no: `<b>Deposito necessario</b>\n\nDeposite minimo ${depositStr('pt')}.`,
+    missing: `<b>Faltam <b>{remaining}$</b> ({local})</b>`,
+    channel_required_alert: `Entre no canal primeiro.`
+};
+
+// ═══════════════════════════════════════════════════════
+// HELPERS - Un seul message a la fois
+// ═══════════════════════════════════════════════════════
+
+// ─── MEDIA MAPPING ───
+function getMedia(mediaKey, lang) {
+    const base = `${BASE_URL}/video`;
+    if (!mediaKey) return null;
+    if (mediaKey === 'vip') return { type: 'photo', url: `${base}/firstmsg.png` };
+    if (mediaKey === 'instructions') return { type: 'photo', url: `${base}/comment_ca_marche.png` };
+    if (mediaKey === 'register') return { type: 'video', url: lang === 'fr' ? `${base}/fr_inscription.mp4` : `${base}/other_inscription.mp4` };
+    if (mediaKey === 'deposit') return { type: 'video', url: lang === 'fr' ? `${base}/fr_depot.mp4` : `${base}/other_depot.mp4` };
+    if (mediaKey === 'default') return { type: 'photo', url: `${base}/defautmenu.png` };
+    return null;
 }
 
-/**
- * Update user language.
- */
-async function setUserLang(telegramId, lang) {
-  await query(
-    `UPDATE users SET language = $2, updated_at = NOW()
-     WHERE telegram_id = $1::int`,
-    [telegramId, lang],
-  );
-}
-
-/**
- * Save 1Win user ID and mark user as registered.
- */
-async function registerOneWinId(telegramId, oneWinId) {
-  const { rows } = await query(
-    `UPDATE users
-     SET one_win_user_id = $2, is_registered = TRUE, registered_at = NOW(), updated_at = NOW()
-     WHERE telegram_id = $1::int
-     RETURNING *`,
-    [telegramId, oneWinId],
-  );
-  return rows[0];
-}
-
-/**
- * Upsert a bot_session row.
- */
-async function upsertSession(telegramId, action, tempData) {
-  await query(
-    `INSERT INTO bot_sessions (bot_type, admin_id, action, temp_data, updated_at)
-     VALUES ('ROVAS', $1::int, $2, $3, NOW())
-     ON CONFLICT (bot_type, admin_id)
-     DO UPDATE SET action = $2, temp_data = $3, updated_at = NOW()`,
-    [telegramId, action || '', tempData || ''],
-  );
-}
-
-/**
- * Get bot_session for a user.
- */
-async function getSession(telegramId) {
-  const { rows } = await query(
-    `SELECT * FROM bot_sessions
-     WHERE bot_type = 'ROVAS' AND admin_id = $1::int`,
-    [telegramId],
-  );
-  return rows[0] || null;
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// Keyboard builders
-// ═══════════════════════════════════════════════════════════════════════
-
-/**
- * Build referral link with user telegram_id.
- */
-function buildRefLink(telegramId) {
-  if (!REG_LINK) return '';
-  const sep = REG_LINK.includes('?') ? '&' : '?';
-  return `${REG_LINK}${sep}ref=${telegramId}`;
-}
-
-/**
- * Main menu inline keyboard.
- * @param {string} lang  - user's language
- * @param {number} tid   - telegram_id for referral link
- * @param {boolean} isVip - whether user has VIP access
- */
-function buildMainMenu(lang, tid, isVip) {
-  const refUrl = buildRefLink(tid);
-  const rows = [
-    [{ text: t(lang, 'menu_register'), url: refUrl }],
-    [{ text: t(lang, 'menu_instructions'), callback_data: 'instructions' }],
-    [{ text: t(lang, 'menu_status'), callback_data: 'status' }],
-    [{ text: t(lang, 'menu_language'), callback_data: 'lang_select' }],
-  ];
-  if (isVip && PREDICTION_URL) {
-    rows.push([{ text: t(lang, 'menu_predictions'), url: PREDICTION_URL }]);
-  }
-  return { inline_keyboard: rows };
-}
-
-/**
- * Language selection inline keyboard.
- */
-function buildLangKeyboard() {
-  const rows = [];
-  for (let i = 0; i < LANGUAGES.length; i += 2) {
-    const row = [];
-    row.push({
-      text: `${LANGUAGES[i].flag} ${LANGUAGES[i].label}`,
-      callback_data: `lang_${LANGUAGES[i].code}`,
-    });
-    if (i + 1 < LANGUAGES.length) {
-      row.push({
-        text: `${LANGUAGES[i + 1].flag} ${LANGUAGES[i + 1].label}`,
-        callback_data: `lang_${LANGUAGES[i + 1].code}`,
-      });
-    }
-    rows.push(row);
-  }
-  // Back button
-  rows.push([{ text: '🔙', callback_data: 'menu' }]);
-  return { inline_keyboard: rows };
-}
-
-/**
- * Instructions page keyboard (back to menu).
- */
-function buildInstructionsKeyboard(lang) {
-  return {
-    inline_keyboard: [
-      [{ text: t(lang, 'instructions_back'), callback_data: 'menu' }],
-    ],
-  };
-}
-
-/**
- * Status page keyboard.
- */
-function buildStatusKeyboard(lang, tid, isVip) {
-  const rows = [];
-  if (!isVip) {
-    const refUrl = buildRefLink(tid);
-    rows.push([{ text: t(lang, 'menu_register'), url: refUrl }]);
-  }
-  if (isVip && PREDICTION_URL) {
-    rows.push([{ text: t(lang, 'menu_predictions'), url: PREDICTION_URL }]);
-  }
-  rows.push([{ text: t(lang, 'instructions_back'), callback_data: 'menu' }]);
-  return { inline_keyboard: rows };
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// Handlers
-// ═══════════════════════════════════════════════════════════════════════
-
-/**
- * Handle /start command — upsert user, show language picker or main menu.
- */
-async function handleStart(chatId, user) {
-  const { id: tid, username, first_name, last_name } = user;
-  const dbUser = await upsertUser(tid, username, first_name, last_name);
-  const lang = dbUser.language || 'fr';
-
-  if (!dbUser.language || dbUser.language === '') {
-    // First time — show language selection
-    await tgSendMessage(chatId, t('fr', 'lang_select'), buildLangKeyboard());
-    await upsertSession(tid, 'choosing_language', '');
-  } else {
-    // Returning user — show main menu
-    const isVip = dbUser.is_deposited && parseFloat(dbUser.deposit_amount) >= MIN_DEPOSIT;
-    const markup = buildMainMenu(lang, tid, isVip);
-    await tgSendMessage(chatId, t(lang, 'welcome'), markup);
-    await upsertSession(tid, 'menu', '');
-  }
-}
-
-/**
- * Show main menu (reusable from callback).
- */
-async function showMainMenu(chatId, lang, tid, existingMessageId) {
-  const dbUser = await getUser(tid);
-  const isVip = dbUser && dbUser.is_deposited && parseFloat(dbUser.deposit_amount) >= MIN_DEPOSIT;
-  const text = t(lang, 'welcome');
-  const markup = buildMainMenu(lang, tid, isVip);
-
-  if (existingMessageId) {
+async function tgAPI(method, data) {
     try {
-      await tgEditMessage(chatId, existingMessageId, text, markup);
-      return;
-    } catch {
-      // Edit failed (message too old, etc.) — fall through to send
+        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return await res.json();
+    } catch (e) {
+        console.error('tgAPI error:', e);
+        return { ok: false };
     }
-  }
-  await tgSendMessage(chatId, text, markup);
 }
 
-/**
- * Handle callback queries.
- */
-async function handleCallback(callbackQuery) {
-  const { id: cbId, message, from, data } = callbackQuery;
-  const chatId = message.chat.id;
-  const messageId = message.message_id;
-  const tid = from.id;
-
-  // Acknowledge callback
-  await tgAnswerCallback(cbId).catch(() => {});
-
-  try {
-    // ── Language selection grid ──────────────────────────────────────
-    if (data === 'lang_select') {
-      const user = await getUser(tid);
-      const lang = user ? user.language || 'fr' : 'fr';
-      const text = t(lang, 'lang_select');
-      await tgEditMessage(chatId, messageId, text, buildLangKeyboard());
-      await upsertSession(tid, 'choosing_language', '');
-      return;
-    }
-
-    // ── Language chosen ─────────────────────────────────────────────
-    if (data.startsWith('lang_')) {
-      const langCode = data.replace('lang_', '');
-      if (LANGUAGES.some((l) => l.code === langCode)) {
-        await setUserLang(tid, langCode);
-        await upsertSession(tid, 'menu', '');
-        const confirmText = t(langCode, 'lang_changed');
-        // Brief confirmation, then show menu
-        await tgEditMessage(chatId, messageId, confirmText, buildMainMenu(langCode, tid, false));
-      }
-      return;
-    }
-
-    // ── Main menu ───────────────────────────────────────────────────
-    if (data === 'menu') {
-      const user = await getUser(tid);
-      const lang = user ? user.language || 'fr' : 'fr';
-      await showMainMenu(chatId, lang, tid, messageId);
-      await upsertSession(tid, 'menu', '');
-      return;
-    }
-
-    // ── Instructions ────────────────────────────────────────────────
-    if (data === 'instructions') {
-      const user = await getUser(tid);
-      const lang = user ? user.language || 'fr' : 'fr';
-      const text = t(lang, 'instructions_text', { '{MIN_DEPOSIT}': MIN_DEPOSIT });
-      await tgEditMessage(chatId, messageId, text, buildInstructionsKeyboard(lang));
-      return;
-    }
-
-    // ── Status ──────────────────────────────────────────────────────
-    if (data === 'status') {
-      const user = await getUser(tid);
-      const lang = user ? user.language || 'fr' : 'fr';
-      const isVip = user && user.is_deposited && parseFloat(user.deposit_amount) >= MIN_DEPOSIT;
-
-      let statusText = '<b>📊 ' + (lang === 'fr' ? 'Votre statut' : 'Status') + '</b>\n\n';
-
-      // Registration status
-      if (user && user.is_registered) {
-        statusText += t(lang, 'status_registered') + '\n';
-      } else {
-        statusText += t(lang, 'status_not_registered') + '\n';
-        statusText += t(lang, 'status_send_id') + '\n\n';
-      }
-
-      // Deposit status
-      if (user && user.is_deposited) {
-        statusText += t(lang, 'status_deposited', { '{AMOUNT}': user.deposit_amount }) + '\n';
-      } else {
-        statusText += t(lang, 'status_no_deposit') + '\n';
-      }
-
-      // VIP status
-      statusText += '\n';
-      if (isVip) {
-        statusText += t(lang, 'status_vip');
-      } else {
-        statusText += t(lang, 'status_not_vip', { '{MIN_DEPOSIT}': MIN_DEPOSIT });
-      }
-
-      const markup = buildStatusKeyboard(lang, tid, isVip);
-      await tgEditMessage(chatId, messageId, statusText, markup);
-      return;
-    }
-  } catch (err) {
-    console.error('[ROVAS] handleCallback error:', err);
-  }
+async function deleteMsg(chatId, msgId) {
+    if (!msgId) return;
+    try { await tgAPI('deleteMessage', { chat_id: chatId, message_id: msgId }); } catch (e) {}
 }
 
-/**
- * Handle text messages (1Win ID detection).
- */
-async function handleMessage(chatId, from, text) {
-  const tid = from.id;
-  const trimmed = (text || '').trim();
-
-  // Only process if it looks like a 1Win ID: all digits, 5-15 chars
-  const isLikelyId = /^\d{5,15}$/.test(trimmed);
-  if (!isLikelyId) return; // Not an ID, ignore
-
-  try {
-    const user = await getUser(tid);
-    const lang = user ? user.language || 'fr' : 'fr';
-
-    // Already registered
-    if (user && user.is_registered) {
-      await tgSendMessage(chatId, t(lang, 'id_already_registered'));
-      return;
+// Edit message in place (for callback queries) - UN SEUL MESSAGE
+async function editMsg(chatId, msgId, text, btns) {
+    try {
+        const res = await tgAPI('editMessageText', {
+            chat_id: chatId, message_id: msgId,
+            text, parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: btns }
+        });
+        if (res.ok) return res;
+        console.log('[EDIT FAILED]', res.description);
+    } catch (e) {
+        console.log('[EDIT ERROR]', e.message);
     }
-
-    // Save 1Win ID
-    await registerOneWinId(tid, trimmed);
-    await upsertSession(tid, 'menu', '');
-
-    const confirmText = t(lang, 'id_saved', { '{ID}': trimmed });
-    await tgSendMessage(chatId, confirmText);
-  } catch (err) {
-    console.error('[ROVAS] handleMessage error:', err);
-  }
+    // Fallback: delete and send new
+    await deleteMsg(chatId, msgId);
+    return await tgAPI('sendMessage', {
+        chat_id: chatId, text,
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: btns }
+    });
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// Main webhook handler
-// ═══════════════════════════════════════════════════════════════════════
-module.exports = async (req, res) => {
-  // ── Health check ───────────────────────────────────────────────────
-  if (req.method === 'GET') {
-    return res.status(200).send('ROVAS Bot en ligne');
-  }
-
-  // ── Reject non-POST ───────────────────────────────────────────────
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // ── Always respond 200 to Telegram ─────────────────────────────────
-  res.status(200).json({ ok: true });
-
-  try {
-    const update = req.body;
-    if (!update) return;
-
-    // ── Callback query ───────────────────────────────────────────────
-    if (update.callback_query) {
-      await handleCallback(update.callback_query);
-      return;
+// Send new message (delete previous) - UN SEUL MESSAGE
+// mediaKey: null | 'default' | 'vip' | 'instructions' | 'register' | 'deposit'
+async function sendNew(chatId, userId, text, btns, mediaKey) {
+    const user = userId ? await getUser(userId) : null;
+    const lang = user ? (user.language || 'fr') : 'fr';
+    if (user && user.last_message_id) {
+        await deleteMsg(chatId, user.last_message_id);
     }
-
-    // ── Message ──────────────────────────────────────────────────────
-    if (update.message) {
-      const msg = update.message;
-      const chatId = msg.chat.id;
-      const from  = msg.from || {};
-      const text  = msg.text || '';
-      const tid   = from.id;
-
-      // /start command
-      if (text.startsWith('/start')) {
-        await handleStart(chatId, from);
-        return;
-      }
-
-      // Potential 1Win ID
-      await handleMessage(chatId, from, text);
-      return;
+    const media = getMedia(mediaKey, lang);
+    let res;
+    if (media && media.type === 'photo') {
+        res = await tgAPI('sendPhoto', {
+            chat_id: chatId, photo: media.url,
+            caption: text, parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: btns }
+        });
+    } else if (media && media.type === 'video') {
+        res = await tgAPI('sendVideo', {
+            chat_id: chatId, video: media.url,
+            caption: text, parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: btns }
+        });
+    } else {
+        res = await tgAPI('sendMessage', {
+            chat_id: chatId, text,
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: btns }
+        });
     }
-  } catch (err) {
-    console.error('[ROVAS] webhook error:', err.message || err);
-  }
+    if (res.ok && userId) {
+        try {
+            await query('UPDATE users SET last_message_id = $1, updated_at = NOW() WHERE telegram_id = $2',
+                [res.result.message_id, userId]);
+        } catch (e) {}
+    }
+    return res;
+}
+
+// ═══════════════════════════════════════════════════════
+// DATABASE
+// ═══════════════════════════════════════════════════════
+
+async function getUser(tid) {
+    const r = await query('SELECT * FROM users WHERE telegram_id = $1', [tid]);
+    return r[0] || null;
+}
+
+function hasValidDeposit(user) {
+    return (parseFloat(user.deposit_amount) || 0) >= MIN_DEPOSIT;
+}
+
+async function createUser(tid, username, fn, ln, referredBy) {
+    const r = await query(
+        'INSERT INTO users (telegram_id, username, first_name, last_name, language, created_at, updated_at, referred_by) VALUES ($1, $2, $3, $4, \'fr\', NOW(), NOW(), $5) RETURNING *',
+        [tid, username, fn, ln, referredBy || null]
+    );
+    return r[0] || null;
+}
+
+// Referral link: https://t.me/bot?start=ref123456789
+function referralLink(tid) {
+    return `https://t.me/${process.env.BOT_USERNAME || 'predvys_bot'}?start=ref${tid}`;
+}
+
+function generateToken(telegramId) {
+    const exp = Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;
+    const payload = `${telegramId}:${exp}`;
+    const sig = crypto.createHmac('sha256', LINK_SECRET).update(payload).digest('hex').substring(0, 12);
+    return Buffer.from(`${payload}:${sig}`).toString('base64url');
+}
+
+function regLink(tid) { return `${REG_LINK}&sub1=${tid}`; }
+function depLink(tid) { return `${REG_LINK}&sub1=${tid}`; }
+
+// ─── Sessions ───
+async function ensureSessionsTable() {
+    await query(`CREATE TABLE IF NOT EXISTS bot_sessions (
+        bot_type TEXT NOT NULL,
+        admin_id BIGINT NOT NULL,
+        action TEXT,
+        step INTEGER DEFAULT 0,
+        temp_data TEXT,
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        PRIMARY KEY (bot_type, admin_id)
+    )`);
+}
+async function setTempState(tid, action) {
+    await query(`INSERT INTO bot_sessions (bot_type, admin_id, action, step, temp_data, updated_at) VALUES ('main', $1, $2, 1, '{}', NOW()) ON CONFLICT (bot_type, admin_id) DO UPDATE SET action = $2, step = 1, temp_data = '{}', updated_at = NOW()`, [tid, action]);
+}
+async function getTempState(tid) {
+    const r = await query("SELECT * FROM bot_sessions WHERE bot_type = 'main' AND admin_id = $1", [tid]);
+    return r[0] || null;
+}
+async function clearTempState(tid) {
+    await query("DELETE FROM bot_sessions WHERE bot_type = 'main' AND admin_id = $1", [tid]);
+}
+
+// ─── Channel verification ───
+async function isChannelMember(userId) {
+    try {
+        const res = await tgAPI('getChatMember', { chat_id: CHANNEL, user_id: userId });
+        if (res.ok && res.result) {
+            return ['member', 'administrator', 'creator'].includes(res.result.status);
+        }
+        return false;
+    } catch (e) {
+        console.error('[CHANNEL CHECK ERROR]', e);
+        return false;
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// BUTTON BUILDERS
+// ═══════════════════════════════════════════════════════
+
+function langButtons() {
+    const keys = Object.keys(LANGS);
+    const btns = [];
+    for (let i = 0; i < keys.length; i += 2) {
+        const row = [];
+        row.push({ text: LANGS[keys[i]].flag + ' ' + LANGS[keys[i]].native, callback_data: 'lang_' + keys[i] });
+        if (keys[i + 1]) {
+            row.push({ text: LANGS[keys[i + 1]].flag + ' ' + LANGS[keys[i + 1]].native, callback_data: 'lang_' + keys[i + 1] });
+        }
+        btns.push(row);
+    }
+    return btns;
+}
+
+// Count referral only after channel verification
+async function countReferralIfNeeded(userId) {
+    try {
+        const user = await getUser(userId);
+        if (!user || !user.referred_by) return;
+        const existingRef = await query('SELECT id FROM referrals WHERE referred_id = $1', [userId]);
+        if (existingRef.length === 0) {
+            await query('INSERT INTO referrals (referrer_id, referred_id, referred_username, created_at) VALUES ($1, $2, $3, NOW())',
+                [user.referred_by, userId, user.username || null]);
+            console.log('[REFERRAL] User', userId, 'channel verified - referral from', user.referred_by, 'now counted');
+        }
+    } catch(e) { console.error('[REFERRAL COUNT ERROR]', e); }
+}
+
+function menuButtons(lang) {
+    return [
+        [{ text: t('btn_instructions', lang), callback_data: 'instructions' }],
+        [{ text: t('btn_register', lang), callback_data: 'register' }, { text: t('btn_already', lang), callback_data: 'already_registered' }],
+        [{ text: t('btn_change_language', lang), callback_data: 'change_language' }],
+        [{ text: t('btn_predictions', lang), callback_data: 'predictions' }]
+    ];
+}
+
+function backButton(lang) {
+    return [{ text: t('btn_back', lang), callback_data: 'back' }];
+}
+
+function channelButtons(lang) {
+    return [
+        [{ text: t('btn_join', lang), url: `https://t.me/${CHANNEL.replace('@', '')}` }],
+        [{ text: t('btn_channel', lang), callback_data: 'check_channel' }]
+    ];
+}
+
+function vipButtons(userId, lang) {
+    const token = generateToken(userId);
+    const webAppUrl = `${BASE_URL}/api/claim?token=${token}`;
+    return [
+        [{ text: t('btn_predictions', lang), web_app: { url: webAppUrl } }],
+        [{ text: t('btn_back', lang), callback_data: 'back' }]
+    ];
+}
+
+// ═══════════════════════════════════════════════════════
+// SHOW FUNCTIONS
+// ═══════════════════════════════════════════════════════
+
+async function showLanguageSelection(chatId, userId, msgId) {
+    if (msgId) await deleteMsg(chatId, msgId);
+    await sendNew(chatId, userId, t('select_language', 'fr'), langButtons());
+}
+
+async function showChannelRequired(chatId, userId, lang, msgId) {
+    if (msgId) await deleteMsg(chatId, msgId);
+    await sendNew(chatId, userId, t('channel_required', lang), channelButtons(lang));
+}
+
+async function showMainMenu(chatId, userId, lang, msgId) {
+    if (msgId) await deleteMsg(chatId, msgId);
+    await sendNew(chatId, userId, t('welcome', lang), menuButtons(lang), 'default');
+}
+
+async function sendVIPMessage(chatId, userId, lang, msgId) {
+    if (msgId) await deleteMsg(chatId, msgId);
+    await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang), 'vip');
+}
+
+// ═══════════════════════════════════════════════════════
+// HANDLE TEXT (1Win ID input)
+// ═══════════════════════════════════════════════════════
+
+async function handleText(chatId, from, text) {
+    const session = await getTempState(from.id);
+    if (session && session.action === 'already_registered') {
+        const winId = text.trim();
+        await clearTempState(from.id);
+        const user = await getUser(from.id);
+        const lang = user.language || 'fr';
+
+        // Check if this 1Win ID exists in deposits/users
+        const found = await query('SELECT * FROM users WHERE one_win_user_id = $1', [winId]);
+
+        if (found.length === 0) {
+            // ID not found in DB
+            await sendNew(chatId, from.id, t('already_registered_notfound', lang),
+                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)], 'register');
+            return;
+        }
+
+        const u = found[0];
+        if (u.telegram_id && String(u.telegram_id) !== String(from.id)) {
+            // Already linked to another Telegram
+            await sendNew(chatId, from.id, t('already_registered_already', lang), [backButton(lang)], 'default');
+            return;
+        }
+
+        // Merge: copy all data from the orphan row to the Telegram user's row
+        const botUser = await getUser(from.id);
+        await query(`UPDATE users SET one_win_user_id = $1, is_registered = TRUE, is_deposited = $2, deposit_amount = $3,
+            registered_at = CASE WHEN registered_at IS NULL THEN $4 ELSE registered_at END,
+            deposited_at = CASE WHEN $2 AND deposited_at IS NULL THEN $5 ELSE deposited_at END,
+            referred_by = CASE WHEN referred_by IS NULL THEN $6 ELSE referred_by END,
+            updated_at = NOW() WHERE telegram_id = $7`,
+            [winId, !!u.is_deposited, u.deposit_amount || 0, u.registered_at, u.deposited_at,
+             u.referred_by || (botUser ? botUser.referred_by : null), from.id]);
+
+        // Delete the orphan row (the one with one_win_user_id but no telegram_id)
+        if (!u.telegram_id) {
+            await query('DELETE FROM users WHERE one_win_user_id = $1 AND telegram_id IS NULL', [winId]);
+        }
+
+        const updated = await getUser(from.id);
+
+        if (updated.is_registered && hasValidDeposit(updated)) {
+            // All good - VIP access
+            await sendNew(chatId, from.id, t('already_registered_success', lang), vipButtons(from.id, lang), 'default');
+        } else if (updated.is_registered) {
+            // Registered but no deposit or insufficient
+            const dep = parseFloat(updated.deposit_amount) || 0;
+            if (dep > 0 && dep < MIN_DEPOSIT) {
+                const remaining = (MIN_DEPOSIT - dep).toFixed(2);
+                const l = LANGS[lang] || LANGS.fr;
+                const local = Math.ceil(parseFloat(remaining) * l.rate);
+                const msg = t('already_registered_success', lang) + '\n\n' +
+                    t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
+                    t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
+                await sendNew(chatId, from.id, msg,
+                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)], 'deposit');
+            } else {
+                await sendNew(chatId, from.id, t('already_registered_success', lang) + '\n\n' + t('deposit', lang),
+                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)], 'deposit');
+            }
+        } else {
+            await sendNew(chatId, from.id, t('register', lang),
+                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)], 'register');
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// MAIN UPDATE HANDLER
+// ═══════════════════════════════════════════════════════
+
+async function handleUpdate(update) {
+    try {
+        await ensureSessionsTable();
+
+        // ─── /START ───
+        if (update.message && update.message.text && update.message.text.startsWith('/start')) {
+            const chatId = update.message.chat.id;
+            const from = update.message.from;
+            // Delete user's /start message to keep single message
+            await deleteMsg(chatId, update.message.message_id);
+
+            // Extract referral from /start ref123456789
+            let referredBy = null;
+            const startParts = update.message.text.split(' ');
+            if (startParts[1] && startParts[1].startsWith('ref')) {
+                const refId = parseInt(startParts[1].substring(3));
+                if (refId && refId !== from.id) {
+                    referredBy = refId;
+                }
+            }
+
+            let user = await getUser(from.id);
+            let isNewUser = false;
+            if (!user) {
+                user = await createUser(from.id, from.username, from.first_name, from.last_name, referredBy);
+                isNewUser = true;
+            }
+
+            // Store referral info on user but DON'T count referral yet
+            // Referral is only counted after channel verification
+            if (isNewUser && referredBy) {
+                const referrer = await getUser(referredBy);
+                if (referrer) {
+                    // Save referred_by on user record, will count after channel check
+                    await query('UPDATE users SET referred_by = $1 WHERE telegram_id = $2', [referredBy, from.id]);
+                    console.log('[REFERRAL] User', from.id, 'started via referral from', referredBy, '- pending channel verification');
+                }
+            }
+
+            // If user has a language set, check channel
+            if (user.language) {
+                const member = await isChannelMember(from.id);
+                if (!member) {
+                    await showChannelRequired(chatId, from.id, user.language, null);
+                } else {
+                    await countReferralIfNeeded(from.id);
+                    if (user.is_registered && hasValidDeposit(user)) {
+                        await sendNew(chatId, from.id, t('access_granted', user.language), vipButtons(from.id, user.language), 'vip');
+                    } else {
+                        await showMainMenu(chatId, from.id, user.language, null);
+                    }
+                }
+            } else {
+                // New user - show language selection FIRST
+                await showLanguageSelection(chatId, from.id, null);
+            }
+            return;
+        }
+
+        // ─── TEXT INPUT (1Win ID) ───
+        if (update.message && update.message.text && !update.message.text.startsWith('/start')) {
+            // Delete user's text message to keep chat clean
+            await deleteMsg(update.message.chat.id, update.message.message_id);
+            return await handleText(update.message.chat.id, update.message.from, update.message.text);
+        }
+
+        // ─── CALLBACK QUERIES ───
+        if (update.callback_query) {
+            const q = update.callback_query;
+            const chatId = q.message.chat.id;
+            const userId = q.from.id;
+            const data = q.data;
+            const msgId = q.message.message_id;
+
+            let user = await getUser(userId);
+            if (!user) user = await createUser(userId, q.from.username, q.from.first_name, q.from.last_name);
+            const lang = user.language || 'fr';
+
+            // ─── LANGUAGE SELECTION ───
+            if (data.startsWith('lang_')) {
+                const newLang = data.replace('lang_', '');
+                if (LANGS[newLang]) {
+                    await query('UPDATE users SET language = $1, updated_at = NOW() WHERE telegram_id = $2', [newLang, userId]);
+                    user.language = newLang;
+                    await tgAPI('answerCallbackQuery', { callback_query_id: q.id, text: t('language_changed', newLang) });
+                    const member = await isChannelMember(userId);
+                    if (!member) {
+                        await showChannelRequired(chatId, userId, newLang, msgId);
+                    } else {
+                        await countReferralIfNeeded(userId);
+                        await showMainMenu(chatId, userId, newLang, msgId);
+                    }
+                }
+                return;
+            }
+
+            // ─── CHECK CHANNEL ───
+            if (data === 'check_channel') {
+                const member = await isChannelMember(userId);
+                if (member) {
+                    await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                    await countReferralIfNeeded(userId);
+                    if (user.is_registered && hasValidDeposit(user)) {
+                        await sendVIPMessage(chatId, userId, lang, msgId);
+                    } else {
+                        await showMainMenu(chatId, userId, lang, msgId);
+                    }
+                } else {
+                    await tgAPI('answerCallbackQuery', {
+                        callback_query_id: q.id,
+                        show_alert: true,
+                        text: t('channel_required_alert', lang)
+                    });
+                }
+                return;
+            }
+
+            // ─── CHANGE LANGUAGE ───
+            if (data === 'change_language') {
+                await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                await showLanguageSelection(chatId, userId, lang, msgId);
+                return;
+            }
+
+            // ─── INSTRUCTIONS ───
+            if (data === 'instructions') {
+                await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                await deleteMsg(chatId, msgId);
+                await sendNew(chatId, userId, t('instructions', lang), [backButton(lang)], 'instructions');
+                return;
+            }
+
+            // ─── REGISTER ───
+            if (data === 'register') {
+                await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                await deleteMsg(chatId, msgId);
+                await sendNew(chatId, userId, t('register', lang),
+                    [[{ text: t('btn_register_now', lang), url: regLink(userId) }], [{ text: t('btn_back', lang), callback_data: 'back' }]], 'register');
+                return;
+            }
+
+            // ─── ALREADY REGISTERED ───
+            if (data === 'already_registered') {
+                await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                await setTempState(userId, 'already_registered');
+                await deleteMsg(chatId, msgId);
+                await sendNew(chatId, userId, t('already_registered', lang), [backButton(lang)], 'default');
+                return;
+            }
+
+            // ─── PREDICTIONS ───
+            if (data === 'predictions') {
+                if (!user.is_registered) {
+                    await tgAPI('answerCallbackQuery', {
+                        callback_query_id: q.id,
+                        show_alert: true,
+                        text: t('register_first', lang)
+                    });
+                } else if (!hasValidDeposit(user)) {
+                    await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                    const dep = parseFloat(user.deposit_amount) || 0;
+                    let msg;
+                    if (dep > 0 && dep < MIN_DEPOSIT) {
+                        const remaining = (MIN_DEPOSIT - dep).toFixed(2);
+                        const l = LANGS[lang] || LANGS.fr;
+                        const local = Math.round(parseFloat(remaining) * l.rate);
+                        msg = t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n'
+                            + t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
+                    } else {
+                        msg = t('deposit_insufficient_no', lang);
+                    }
+                    await deleteMsg(chatId, msgId);
+                    await sendNew(chatId, userId, msg,
+                        [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)], 'deposit');
+                } else {
+                    await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                    await sendVIPMessage(chatId, userId, lang, msgId);
+                }
+                return;
+            }
+
+            // ─── BACK ───
+            if (data === 'back') {
+                await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                await clearTempState(userId);
+                // Refresh user data
+                user = await getUser(userId);
+                if (user.is_registered && hasValidDeposit(user)) {
+                    await showMainMenu(chatId, userId, lang, msgId);
+                } else {
+                    await showMainMenu(chatId, userId, lang, msgId);
+                }
+                return;
+            }
+
+            await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+        }
+    } catch (error) {
+        console.error('handleUpdate error:', error);
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════
+
+module.exports = async function handler(req, res) {
+    if (req.method === 'GET') {
+        // Auto-register webhook on GET request
+        if (req.query.setup) {
+            try {
+                const webhookUrl = req.query.url ? `${req.query.url}/api/webhook` : `${BASE_URL}/api/webhook`;
+                const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setWebhook`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: webhookUrl })
+                });
+                const info = await r.json();
+                return res.status(200).json({
+                    status: 'Webhook registered',
+                    url: webhookUrl,
+                    token: BOT_TOKEN ? BOT_TOKEN.substring(0, 8) + '...' : 'MISSING',
+                    telegram_response: info
+                });
+            } catch (e) {
+                return res.status(500).json({ error: e.message });
+            }
+        }
+        return res.status(200).send('ROVAS V2 International est en ligne !');
+    }
+    if (req.method === 'POST') {
+        try { await handleUpdate(req.body); return res.status(200).send('OK'); }
+        catch (e) { console.error('Webhook error:', e); return res.status(500).send('Error'); }
+    }
+    res.status(405).send('Method not allowed');
 };

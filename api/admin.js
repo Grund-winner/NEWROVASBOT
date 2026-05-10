@@ -1,243 +1,346 @@
+// ═══════════════════════════════════════════════════════
+// ROVAS V2 - Admin API
+// ═══════════════════════════════════════════
 const { query } = require('../lib/db');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'rovasadmin2024';
 
-// ═══════════════════════════════════════════════════════════════════════
-// Configuration
-// ═══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'NewROVASadmin22';
+module.exports = async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.query.password !== ADMIN_PASSWORD) return res.status(403).json({ error: 'Non autorise' });
 
-// ═══════════════════════════════════════════════════════════════════════
-// Helpers
-// ═══════════════════════════════════════════════════════════════════════
-function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = 'ROVAS-';
-  for (let i = 0; i < 8; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
+    try {
+        const action = req.query.action;
 
-// ═══════════════════════════════════════════════════════════════════════
-// Action handlers
-// ═══════════════════════════════════════════════════════════════════════
+        // ─── Stats (enhanced with gaming) ───
+        if (!action || action === 'stats') {
+            const t = await query('SELECT COUNT(*) as c FROM users');
+            const r = await query('SELECT COUNT(*) as c FROM users WHERE is_registered = TRUE');
+            const d = await query('SELECT COUNT(*) as c FROM users WHERE is_deposited = TRUE');
+            const rev = await query('SELECT COALESCE(SUM(deposit_amount),0) as t FROM users');
+            const today = await query("SELECT COUNT(*) as c FROM users WHERE created_at >= CURRENT_DATE");
+            const todayDep = await query("SELECT COUNT(*) as c FROM users WHERE deposited_at >= CURRENT_DATE");
+            // Stats par langue
+            const langStats = await query('SELECT language, COUNT(*) as count FROM users WHERE language IS NOT NULL GROUP BY language ORDER BY count DESC');
 
-/**
- * stats — Dashboard statistics
- */
-async function handleStats() {
-  const [
-    totalUsers,
-    registeredUsers,
-    depositedUsers,
-    depositSum,
-    newToday,
-  ] = await Promise.all([
-    query('SELECT COUNT(*)::int as count FROM users'),
-    query('SELECT COUNT(*)::int as count FROM users WHERE is_registered = TRUE'),
-    query('SELECT COUNT(*)::int as count FROM users WHERE is_deposited = TRUE'),
-    query('SELECT COALESCE(SUM(amount), 0)::float as total FROM deposits'),
-    query("SELECT COUNT(*)::int as count FROM users WHERE created_at >= CURRENT_DATE"),
-  ]);
+            // Gaming stats (wrapped in try/catch — table may not exist yet)
+            let gaming = { totalBets: 0, totalWins: 0, totalLosses: 0, netRevenue: 0 };
+            try {
+                const gTotalBets = await query('SELECT COUNT(*) as c FROM gaming_events');
+                const gTotals = await query(
+                    `SELECT
+                        COALESCE(SUM(CASE WHEN event_type = 'win' THEN amount ELSE 0 END), 0) as total_wins,
+                        COALESCE(SUM(CASE WHEN event_type = 'loss' THEN amount ELSE 0 END), 0) as total_losses
+                     FROM gaming_events`
+                );
+                gaming = {
+                    totalBets: parseInt(gTotalBets[0].c),
+                    totalWins: parseFloat(gTotals[0].total_wins),
+                    totalLosses: parseFloat(gTotals[0].total_losses),
+                    netRevenue: parseFloat(gTotals[0].total_losses) - parseFloat(gTotals[0].total_wins)
+                };
+            } catch (gErr) {
+                console.warn('[ADMIN API] gaming_events table not available:', gErr.message);
+            }
 
-  return {
-    total_users: totalUsers.rows[0].count,
-    registered_users: registeredUsers.rows[0].count,
-    deposited_users: depositedUsers.rows[0].count,
-    total_deposits: parseFloat(depositSum.rows[0].total),
-    new_today: newToday.rows[0].count,
-  };
-}
+            return res.status(200).json({
+                total: parseInt(t[0].c),
+                registered: parseInt(r[0].c),
+                deposited: parseInt(d[0].c),
+                totalRevenue: parseFloat(rev[0].t),
+                newToday: parseInt(today[0].c),
+                depositedToday: parseInt(todayDep[0].c),
+                langStats: langStats,
+                gaming
+            });
+        }
 
-/**
- * users — List all users with deposit totals
- */
-async function handleUsers() {
-  const { rows } = await query(
-    `SELECT u.*,
-            COALESCE((SELECT SUM(d.amount) FROM deposits d WHERE d.one_win_user_id = u.one_win_user_id), 0)::float AS real_deposit_total
-     FROM users u
-     ORDER BY u.created_at DESC`,
-  );
-  return rows;
-}
+        // ─── Users (enhanced) ───
+        if (action === 'users') {
+            const lang = req.query.lang;
+            let users;
+            if (lang && lang !== 'all') {
+                users = await query(
+                    `SELECT u.telegram_id, u.first_name, u.last_name, u.username, u.language,
+                            u.one_win_user_id, u.deposit_amount, u.is_registered, u.is_deposited,
+                            u.created_at, u.deposited_at,
+                            (SELECT COUNT(*) FROM referrals WHERE referrer_id = u.telegram_id) AS referral_count,
+                            u.referred_by
+                     FROM users u WHERE u.language = $1 ORDER BY u.created_at DESC`,
+                    [lang]
+                );
+            } else {
+                users = await query(
+                    `SELECT u.telegram_id, u.first_name, u.last_name, u.username, u.language,
+                            u.one_win_user_id, u.deposit_amount, u.is_registered, u.is_deposited,
+                            u.created_at, u.deposited_at,
+                            (SELECT COUNT(*) FROM referrals WHERE referrer_id = u.telegram_id) AS referral_count,
+                            u.referred_by
+                     FROM users u ORDER BY u.created_at DESC`
+                );
+            }
+            return res.status(200).json({ users });
+        }
 
-/**
- * search — ILIKE search by various fields
- */
-async function handleSearch(req) {
-  const term = (req.query.q || '').trim();
-  if (!term) return [];
+        // ─── Search ───
+        if (action === 'search') {
+            const q = req.query.q || '';
+            if (!q.trim()) return res.status(200).json({ users: [] });
+            const searchTerm = '%' + q.trim() + '%';
+            const users = await query(
+                `SELECT * FROM users
+                 WHERE telegram_id::text ILIKE $1
+                    OR one_win_user_id::text ILIKE $1
+                    OR first_name ILIKE $1
+                    OR last_name ILIKE $1
+                    OR username ILIKE $1
+                 ORDER BY created_at DESC LIMIT 50`,
+                [searchTerm]
+            );
+            return res.status(200).json({ users });
+        }
 
-  const { rows } = await query(
-    `SELECT u.*,
-            COALESCE((SELECT SUM(d.amount) FROM deposits d WHERE d.one_win_user_id = u.one_win_user_id), 0)::float AS real_deposit_total
-     FROM users u
-     WHERE u.telegram_id::text ILIKE $1
-        OR u.one_win_user_id::text ILIKE $1
-        OR u.first_name ILIKE $1
-        OR u.last_name ILIKE $1
-        OR u.username ILIKE $1
-     ORDER BY u.created_at DESC
-     LIMIT 100`,
-    [`%${term}%`],
-  );
-  return rows;
-}
+        // ─── Deposit history ───
+        if (action === 'deposit_history') {
+            const tid = req.query.telegram_id;
+            if (!tid) return res.status(400).json({ error: 'ID manquant' });
+            const deposits = await query(
+                'SELECT * FROM deposits WHERE telegram_id = $1 ORDER BY created_at DESC',
+                [tid]
+            );
+            const totalDeposits = await query(
+                'SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM deposits WHERE telegram_id = $1',
+                [tid]
+            );
+            return res.status(200).json({
+                deposits,
+                total: parseFloat(totalDeposits[0].total),
+                count: parseInt(totalDeposits[0].count)
+            });
+        }
 
-/**
- * deposits — Get deposits for a specific user
- */
-async function handleDeposits(req) {
-  const userId = req.query.user_id;
-  if (!userId) return [];
+        // ─── All deposits ───
+        if (action === 'all_deposits') {
+            const page = parseInt(req.query.page) || 1;
+            const limit = 50;
+            const offset = (page - 1) * limit;
+            const deposits = await query(
+                'SELECT d.*, u.first_name, u.last_name, u.username, u.language FROM deposits d LEFT JOIN users u ON u.telegram_id = d.telegram_id ORDER BY d.created_at DESC LIMIT $1 OFFSET $2',
+                [limit, offset]
+            );
+            const total = await query('SELECT COUNT(*) as c FROM deposits');
+            return res.status(200).json({
+                deposits,
+                total: parseInt(total[0].c),
+                page,
+                totalPages: Math.ceil(parseInt(total[0].c) / limit)
+            });
+        }
 
-  const { rows } = await query(
-    `SELECT d.*,
-            u.first_name, u.last_name, u.username, u.telegram_id
-     FROM deposits d
-     LEFT JOIN users u ON u.one_win_user_id = d.one_win_user_id
-     WHERE d.telegram_id = $1::int OR d.one_win_user_id::text = $2
-     ORDER BY d.created_at DESC`,
-    [userId, userId],
-  );
-  return rows;
-}
+        // ─── Top depositors ───
+        if (action === 'top_depositors') {
+            const limit = parseInt(req.query.limit) || 10;
+            const lang = req.query.lang;
+            let topDepositors;
+            if (lang && lang !== 'all') {
+                topDepositors = await query(
+                    'SELECT * FROM users WHERE deposit_amount > 0 AND language = $1 ORDER BY deposit_amount DESC LIMIT $2',
+                    [lang, limit]
+                );
+            } else {
+                topDepositors = await query(
+                    'SELECT * FROM users WHERE deposit_amount > 0 ORDER BY deposit_amount DESC LIMIT $1',
+                    [limit]
+                );
+            }
+            return res.status(200).json({ top: topDepositors });
+        }
 
-/**
- * codes — List all access codes
- */
-async function handleCodes() {
-  const { rows } = await query(
-    'SELECT * FROM access_codes ORDER BY created_at DESC',
-  );
-  return rows;
-}
+        // ─── Codes ───
+        if (action === 'codes') {
+            const codes = await query(
+                'SELECT ac.*, u.first_name, u.username FROM access_codes ac LEFT JOIN users u ON u.telegram_id = ac.telegram_id ORDER BY ac.created_at DESC'
+            );
+            return res.status(200).json({ codes });
+        }
 
-/**
- * generate — Generate N access codes
- */
-async function handleGenerate(req) {
-  let count = parseInt(req.query.count, 10) || 10;
-  if (count < 1) count = 1;
-  if (count > 100) count = 100;
+        // ─── Generate code ───
+        if (action === 'generate') {
+            const tid = req.query.telegram_id;
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = 'ROVAS-';
+            for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            await query('INSERT INTO access_codes (code, telegram_id, created_at) VALUES ($1, $2, NOW())', [code, tid || null]);
+            return res.status(200).json({ success: true, code });
+        }
 
-  const codes = [];
-  for (let i = 0; i < count; i++) {
-    const code = generateCode();
-    codes.push(code);
-  }
+        // ═══════════════════════════════════════════════════
+        // NEW GAMING ENDPOINTS
+        // ═══════════════════════════════════════════════════
 
-  const values = codes.map((_, i) => `($${i + 1})`).join(', ');
-  await query(
-    `INSERT INTO access_codes (code, created_at) VALUES ${values}`,
-    codes,
-  );
+        // ─── Gaming stats (standalone) ───
+        if (action === 'gaming_stats') {
+            const totalBets = await query('SELECT COUNT(*) as c FROM gaming_events');
+            const totals = await query(
+                `SELECT
+                    COALESCE(SUM(CASE WHEN event_type = 'win' THEN amount ELSE 0 END), 0) as total_wins,
+                    COALESCE(SUM(CASE WHEN event_type = 'loss' THEN amount ELSE 0 END), 0) as total_losses
+                 FROM gaming_events`
+            );
+            const activePlayers = await query(
+                'SELECT COUNT(DISTINCT telegram_id) as c FROM gaming_events'
+            );
 
-  // Return the generated codes
-  const { rows } = await query(
-    "SELECT * FROM access_codes WHERE code = ANY($1) ORDER BY created_at DESC",
-    [codes],
-  );
-  return { generated: rows, count };
-}
+            const wins = parseFloat(totals[0].total_wins);
+            const losses = parseFloat(totals[0].total_losses);
 
-/**
- * cleanup — Delete duplicate telegram_id entries (keep most recent)
- */
-async function handleCleanup() {
-  // Find duplicate telegram_ids
-  const { rows: duplicates } = await query(
-    `SELECT telegram_id, COUNT(*) as cnt
-     FROM users
-     WHERE telegram_id IS NOT NULL
-     GROUP BY telegram_id
-     HAVING COUNT(*) > 1`,
-  );
+            return res.status(200).json({
+                totalBets: parseInt(totalBets[0].c),
+                totalWins: wins,
+                totalLosses: losses,
+                netRevenue: losses - wins,
+                activePlayers: parseInt(activePlayers[0].c)
+            });
+        }
 
-  let deletedCount = 0;
+        // ─── Top losers (biggest revenue for us) ───
+        if (action === 'top_losers') {
+            const limit = parseInt(req.query.limit) || 10;
+            const losers = await query(
+                `SELECT u.telegram_id, u.first_name, u.last_name, u.username, u.language,
+                        COALESCE(SUM(CASE WHEN g.event_type = 'loss' THEN g.amount ELSE 0 END), 0) as total_losses,
+                        COALESCE(SUM(CASE WHEN g.event_type = 'win' THEN g.amount ELSE 0 END), 0) as total_wins,
+                        COUNT(g.id) as total_bets
+                 FROM users u
+                 LEFT JOIN gaming_events g ON g.telegram_id = u.telegram_id
+                 GROUP BY u.telegram_id, u.first_name, u.last_name, u.username, u.language
+                 HAVING COALESCE(SUM(CASE WHEN g.event_type = 'loss' THEN g.amount ELSE 0 END), 0) > 0
+                 ORDER BY total_losses DESC
+                 LIMIT $1`,
+                [limit]
+            );
+            return res.status(200).json({ losers });
+        }
 
-  for (const dup of duplicates) {
-    // Get all rows for this telegram_id ordered by created_at DESC (newest first)
-    const { rows } = await query(
-      `SELECT id FROM users WHERE telegram_id = $1::int ORDER BY created_at DESC`,
-      [dup.telegram_id],
-    );
+        // ─── Gaming users (per-user gaming revenue, paginated) ───
+        if (action === 'gaming_users') {
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 50;
+            const offset = (page - 1) * limit;
 
-    // Keep the first (newest), delete the rest
-    if (rows.length > 1) {
-      const idsToDelete = rows.slice(1).map(r => r.id);
-      const deleteResult = await query(
-        `DELETE FROM users WHERE id = ANY($1::int[])`,
-        [idsToDelete],
-      );
-      deletedCount += deleteResult.rowCount || 0;
+            const users = await query(
+                `SELECT u.telegram_id, u.first_name, u.last_name, u.username, u.language,
+                        COALESCE(SUM(CASE WHEN g.event_type = 'win' THEN g.amount ELSE 0 END), 0) as total_wins,
+                        COALESCE(SUM(CASE WHEN g.event_type = 'loss' THEN g.amount ELSE 0 END), 0) as total_losses,
+                        COUNT(g.id) as total_bets,
+                        COALESCE(SUM(CASE WHEN g.event_type = 'loss' THEN g.amount ELSE -g.amount END), 0) as net_revenue
+                 FROM users u
+                 LEFT JOIN gaming_events g ON g.telegram_id = u.telegram_id
+                 GROUP BY u.telegram_id, u.first_name, u.last_name, u.username, u.language
+                 ORDER BY net_revenue DESC
+                 LIMIT $1 OFFSET $2`,
+                [limit, offset]
+            );
+            const total = await query(
+                `SELECT COUNT(*) as c FROM (
+                    SELECT DISTINCT telegram_id FROM gaming_events
+                 ) sub`
+            );
+            return res.status(200).json({
+                users,
+                total: parseInt(total[0].c),
+                page,
+                totalPages: Math.ceil(parseInt(total[0].c) / limit)
+            });
+        }
+
+        // ─── Deposit filter users (count for broadcast preview) ───
+        if (action === 'deposit_filter_users') {
+            const depositMin = parseFloat(req.query.deposit_min) || 0;
+            const depositMax = req.query.deposit_max
+                ? parseFloat(req.query.deposit_max)
+                : 999999999;
+
+            const result = await query(
+                'SELECT COUNT(*) as count FROM users WHERE deposit_amount >= $1 AND deposit_amount <= $2',
+                [depositMin, depositMax]
+            );
+
+            return res.status(200).json({
+                count: parseInt(result[0].count),
+                filters: { deposit_min: depositMin, deposit_max: depositMax }
+            });
+        }
+
+        // ─── Daily History ───
+        if (action === 'daily_history') {
+            const date = req.query.date || new Date().toISOString().split('T')[0];
+            try {
+                const users = await query(
+                    `SELECT telegram_id, first_name, last_name, username, language,
+                            one_win_user_id, deposit_amount, is_registered, is_deposited,
+                            created_at, deposited_at
+                     FROM users
+                     WHERE DATE(created_at) = $1
+                     ORDER BY created_at DESC`,
+                    [date]
+                );
+                const deposited = await query(
+                    `SELECT telegram_id, first_name, last_name, username,
+                            deposit_amount, deposited_at
+                     FROM users
+                     WHERE DATE(deposited_at) = $1
+                     ORDER BY deposited_at DESC`,
+                    [date]
+                );
+                const stats = await query(
+                    `SELECT
+                        COUNT(*) as new_users,
+                        COUNT(*) FILTER (WHERE is_registered = TRUE) as registered,
+                        COUNT(*) FILTER (WHERE is_deposited = TRUE) as deposited,
+                        COALESCE(SUM(deposit_amount) FILTER (WHERE deposited_at::date = $1), 0) as daily_revenue
+                     FROM users
+                     WHERE DATE(created_at) = $1`,
+                    [date]
+                );
+                return res.status(200).json({
+                    date,
+                    stats: stats[0],
+                    users,
+                    deposited
+                });
+            } catch (e) {
+                return res.status(200).json({ date, stats: { new_users: 0, registered: 0, deposited: 0, daily_revenue: 0 }, users: [], deposited: [] });
+            }
+        }
+
+        // ─── Daily Overview (last N days) ───
+        if (action === 'daily_overview') {
+            const days = parseInt(req.query.days) || 7;
+            try {
+                const overview = await query(
+                    `SELECT
+                        DATE(created_at) as date,
+                        COUNT(*) as new_users,
+                        COUNT(*) FILTER (WHERE is_registered = TRUE) as registered,
+                        COUNT(*) FILTER (WHERE is_deposited = TRUE) as deposited,
+                        COALESCE(SUM(deposit_amount) FILTER (WHERE is_deposited = TRUE), 0) as revenue
+                     FROM users
+                     WHERE created_at >= CURRENT_DATE - ($1 || ' days')::interval
+                     GROUP BY DATE(created_at)
+                     ORDER BY date DESC`,
+                    [String(days)]
+                );
+                return res.status(200).json({ days: overview });
+            } catch (e) {
+                return res.status(200).json({ days: [] });
+            }
+        }
+
+        return res.status(400).json({ error: 'Action inconnue' });
+    } catch (error) {
+        console.error('[ADMIN API ERROR]', error);
+        return res.status(500).json({ error: 'Erreur serveur' });
     }
-  }
-
-  return { duplicates_found: duplicates.length, deleted: deletedCount };
-}
-
-/**
- * games — List all games
- */
-async function handleGames() {
-  const { rows } = await query(
-    'SELECT * FROM games ORDER BY sort_order ASC, created_at DESC',
-  );
-  return rows;
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// Main handler
-// ═══════════════════════════════════════════════════════════════════════
-module.exports = async (req, res) => {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // Auth check
-  const password = req.query.password || '';
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  const action = (req.query.action || '').toLowerCase().trim();
-
-  try {
-    let result;
-
-    switch (action) {
-      case 'stats':
-        result = await handleStats();
-        break;
-      case 'users':
-        result = await handleUsers();
-        break;
-      case 'search':
-        result = await handleSearch(req);
-        break;
-      case 'deposits':
-        result = await handleDeposits(req);
-        break;
-      case 'codes':
-        result = await handleCodes();
-        break;
-      case 'generate':
-        result = await handleGenerate(req);
-        break;
-      case 'cleanup':
-        result = await handleCleanup();
-        break;
-      case 'games':
-        result = await handleGames();
-        break;
-      default:
-        return res.status(400).json({ error: 'Action non reconnue' });
-    }
-
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    console.error(`[admin] Error on action "${action}":`, err);
-    return res.status(500).json({ success: false, error: 'Internal server error', details: err.message });
-  }
 };

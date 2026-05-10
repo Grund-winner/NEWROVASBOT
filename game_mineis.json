@@ -1,0 +1,21 @@
+{
+  "code": 200,
+  "data": {
+    "description": "",
+    "external": {},
+    "html": "<html><head></head><body>Game not found</body></html>",
+    "metadata": {},
+    "title": "",
+    "url": "https://newrovasbot.vercel.app/api/game-page",
+    "usage": {
+      "tokens": 16
+    },
+    "warning": "Target URL returned error 404: Not Found"
+  },
+  "meta": {
+    "usage": {
+      "tokens": 16
+    }
+  },
+  "status": 20000
+}
