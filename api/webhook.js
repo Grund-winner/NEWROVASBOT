@@ -371,41 +371,16 @@ T.pt = {
 // HELPERS - Un seul message a la fois
 // ═══════════════════════════════════════════════════════
 
-const fs = require('fs');
-const path = require('path');
-
-// ─── Channel photo (sent as buffer via multipart, never Vercel URL) ───
+// ─── Channel photo: Telegram downloads from URL, file_id cached for speed ───
 let _channelPhotoFileId = null;
 
-async function getChannelPhotoBuffer() {
-    // Try filesystem first (works in local dev)
-    try {
-        const imgPath = path.join(__dirname, '..', 'identite_visuel.png');
-        if (fs.existsSync(imgPath)) {
-            const buf = fs.readFileSync(imgPath);
-            if (buf && buf.length > 1000) return buf;
-        }
-    } catch (e) { console.log('[CHANNEL PHOTO] fs read failed, trying fetch'); }
-    // Fallback: download from own deployment URL (works on Vercel serverless)
-    try {
-        const imgUrl = BASE_URL + '/identite_visuel.png';
-        console.log('[CHANNEL PHOTO] Fetching from', imgUrl);
-        const res = await fetch(imgUrl);
-        if (res.ok) {
-            const buf = Buffer.from(await res.arrayBuffer());
-            if (buf && buf.length > 1000) return buf;
-        }
-    } catch (e) { console.error('[CHANNEL PHOTO] fetch failed:', e.message); }
-    return null;
-}
-
-async function tgSendPhoto(chatId, userId, photoBuffer, caption, btns) {
-    // Delete previous message
+async function sendChannelPhoto(chatId, userId, caption, btns) {
+    // Delete previous message if any
     const user = userId ? await getUser(userId) : null;
     if (user && user.last_message_id) {
         await deleteMsg(chatId, user.last_message_id);
     }
-    // Use cached file_id if available
+    // Use cached file_id (fast, no re-upload)
     if (_channelPhotoFileId) {
         try {
             const res = await tgAPI('sendPhoto', {
@@ -417,32 +392,26 @@ async function tgSendPhoto(chatId, userId, photoBuffer, caption, btns) {
                 if (userId) await saveLastMsg(userId, res.result.message_id);
                 return res;
             }
-        } catch (e) { console.log('[CHANNEL PHOTO] file_id expired, re-uploading'); }
+        } catch (e) { console.log('[CHANNEL PHOTO] file_id expired, using URL'); }
     }
-    // Upload via multipart/form-data
+    // Telegram downloads image from URL — no buffer/fs/form-data needed
     try {
-        const FormData = (await import('form-data')).default;
-        const form = new FormData();
-        form.append('chat_id', String(chatId));
-        form.append('photo', photoBuffer, { filename: 'joinch.png', contentType: 'image/png' });
-        form.append('caption', caption);
-        form.append('parse_mode', 'HTML');
-        form.append('reply_markup', JSON.stringify({ inline_keyboard: btns }));
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-            method: 'POST', body: form,
-            headers: form.getHeaders()
+        const res = await tgAPI('sendPhoto', {
+            chat_id: chatId,
+            photo: BASE_URL + '/identite_visuel.png',
+            caption, parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: btns }
         });
-        const data = await res.json();
-        if (data.ok) {
-            const photos = data.result.photo;
-            if (photos && photos.length > 0) {
-                _channelPhotoFileId = photos[photos.length - 1].file_id;
-            }
-            if (userId) await saveLastMsg(userId, data.result.message_id);
+        if (res.ok && res.result && res.result.photo) {
+            // Cache the largest file_id for future calls
+            const photos = res.result.photo;
+            _channelPhotoFileId = photos[photos.length - 1].file_id;
+            console.log('[CHANNEL PHOTO] Cached file_id:', _channelPhotoFileId.substring(0, 30) + '...');
+            if (userId) await saveLastMsg(userId, res.result.message_id);
         }
-        return data;
+        return res;
     } catch (e) {
-        console.error('[tgSendPhoto ERROR]', e.message);
+        console.error('[CHANNEL PHOTO URL ERROR]', e.message);
         return { ok: false };
     }
 }
@@ -703,12 +672,9 @@ async function showChannelRequired(chatId, userId, lang, msgId) {
     const caption = t('channel_required', lang);
     const btns = channelButtons(lang);
     try {
-        const photoBuf = await getChannelPhotoBuffer();
-        if (photoBuf) {
-            const result = await tgSendPhoto(chatId, userId, photoBuf, caption, btns);
-            if (result && result.ok) return;
-            console.log('[CHANNEL] Photo send failed, falling back to text');
-        }
+        const result = await sendChannelPhoto(chatId, userId, caption, btns);
+        if (result && result.ok) return;
+        console.log('[CHANNEL] Photo send failed, falling back to text');
     } catch (e) {
         console.error('[CHANNEL PHOTO ERROR]', e.message);
     }
@@ -1039,16 +1005,19 @@ module.exports = async function handler(req, res) {
         if (req.query.diag) {
             try {
                 const info = {
-                    commit: '2435c76',
+                    commit: require('child_process').execSync('git log --oneline -1').toString().trim().split(' ')[0],
                     node: process.version,
-                    hasFormData: false,
-                    hasFs: false,
+                    channel_photo_file_id: _channelPhotoFileId ? _channelPhotoFileId.substring(0, 30) + '...' : 'not cached yet',
                     env_token: BOT_TOKEN ? BOT_TOKEN.substring(0, 8) + '...' : 'MISSING',
                     base_url: BASE_URL,
+                    image_accessible: false,
                     db_ok: false
                 };
-                try { require('form-data'); info.hasFormData = true; } catch(e) {}
-                try { require('fs'); info.hasFs = true; } catch(e) {}
+                try {
+                    const imgCheck = await fetch(BASE_URL + '/identite_visuel.png', { method: 'HEAD' });
+                    info.image_accessible = imgCheck.ok;
+                    info.image_size = imgCheck.headers.get('content-length');
+                } catch(e) { info.image_error = e.message; }
                 try { await query('SELECT 1 as ok'); info.db_ok = true; } catch(e) { info.db_error = e.message; }
                 // Check webhook info
                 try {
