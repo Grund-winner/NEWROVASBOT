@@ -1035,6 +1035,31 @@ module.exports = async function handler(req, res) {
                 return res.status(500).json({ error: e.message });
             }
         }
+        // Diagnostic endpoint
+        if (req.query.diag) {
+            try {
+                const info = {
+                    commit: '2435c76',
+                    node: process.version,
+                    hasFormData: false,
+                    hasFs: false,
+                    env_token: BOT_TOKEN ? BOT_TOKEN.substring(0, 8) + '...' : 'MISSING',
+                    base_url: BASE_URL,
+                    db_ok: false
+                };
+                try { require('form-data'); info.hasFormData = true; } catch(e) {}
+                try { require('fs'); info.hasFs = true; } catch(e) {}
+                try { await query('SELECT 1 as ok'); info.db_ok = true; } catch(e) { info.db_error = e.message; }
+                // Check webhook info
+                try {
+                    const whInfo = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getWebhookInfo`);
+                    info.webhook = await whInfo.json();
+                } catch(e) { info.webhook_error = e.message; }
+                return res.status(200).json(info);
+            } catch (e) {
+                return res.status(200).json({ error: e.message, stack: e.stack });
+            }
+        }
         return res.status(200).send('ROVAS V2 International est en ligne !');
     }
     if (req.method === 'POST') {
