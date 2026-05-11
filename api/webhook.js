@@ -377,6 +377,28 @@ const path = require('path');
 // ─── Channel photo (sent as buffer via multipart, never Vercel URL) ───
 let _channelPhotoFileId = null;
 
+async function getChannelPhotoBuffer() {
+    // Try filesystem first (works in local dev)
+    try {
+        const imgPath = path.join(__dirname, '..', 'identite_visuel.png');
+        if (fs.existsSync(imgPath)) {
+            const buf = fs.readFileSync(imgPath);
+            if (buf && buf.length > 1000) return buf;
+        }
+    } catch (e) { console.log('[CHANNEL PHOTO] fs read failed, trying fetch'); }
+    // Fallback: download from own deployment URL (works on Vercel serverless)
+    try {
+        const imgUrl = BASE_URL + '/identite_visuel.png';
+        console.log('[CHANNEL PHOTO] Fetching from', imgUrl);
+        const res = await fetch(imgUrl);
+        if (res.ok) {
+            const buf = Buffer.from(await res.arrayBuffer());
+            if (buf && buf.length > 1000) return buf;
+        }
+    } catch (e) { console.error('[CHANNEL PHOTO] fetch failed:', e.message); }
+    return null;
+}
+
 async function tgSendPhoto(chatId, userId, photoBuffer, caption, btns) {
     // Delete previous message
     const user = userId ? await getUser(userId) : null;
@@ -398,21 +420,20 @@ async function tgSendPhoto(chatId, userId, photoBuffer, caption, btns) {
         } catch (e) { console.log('[CHANNEL PHOTO] file_id expired, re-uploading'); }
     }
     // Upload via multipart/form-data
-    const FormData = (await import('form-data')).default;
-    const form = new FormData();
-    form.append('chat_id', String(chatId));
-    form.append('photo', photoBuffer, { filename: 'joinch.png', contentType: 'image/png' });
-    form.append('caption', caption);
-    form.append('parse_mode', 'HTML');
-    form.append('reply_markup', JSON.stringify({ inline_keyboard: btns }));
     try {
+        const FormData = (await import('form-data')).default;
+        const form = new FormData();
+        form.append('chat_id', String(chatId));
+        form.append('photo', photoBuffer, { filename: 'joinch.png', contentType: 'image/png' });
+        form.append('caption', caption);
+        form.append('parse_mode', 'HTML');
+        form.append('reply_markup', JSON.stringify({ inline_keyboard: btns }));
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
             method: 'POST', body: form,
             headers: form.getHeaders()
         });
         const data = await res.json();
         if (data.ok) {
-            // Cache file_id for future sends
             const photos = data.result.photo;
             if (photos && photos.length > 0) {
                 _channelPhotoFileId = photos[photos.length - 1].file_id;
@@ -421,16 +442,9 @@ async function tgSendPhoto(chatId, userId, photoBuffer, caption, btns) {
         }
         return data;
     } catch (e) {
-        console.error('[tgSendPhoto ERROR]', e);
+        console.error('[tgSendPhoto ERROR]', e.message);
         return { ok: false };
     }
-}
-
-function getChannelPhotoBuffer() {
-    const imgPath = path.join(__dirname, '..', 'identite_visuel.png');
-    if (fs.existsSync(imgPath)) return fs.readFileSync(imgPath);
-    console.error('[CHANNEL PHOTO] File not found:', imgPath);
-    return null;
 }
 
 // ─── MEDIA MAPPING (file_id stored on Telegram) ───
@@ -686,14 +700,20 @@ async function showLanguageSelection(chatId, userId, msgId) {
 
 async function showChannelRequired(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
-    const photoBuf = getChannelPhotoBuffer();
     const caption = t('channel_required', lang);
     const btns = channelButtons(lang);
-    if (photoBuf) {
-        await tgSendPhoto(chatId, userId, photoBuf, caption, btns);
-    } else {
-        await sendNew(chatId, userId, caption, btns);
+    try {
+        const photoBuf = await getChannelPhotoBuffer();
+        if (photoBuf) {
+            const result = await tgSendPhoto(chatId, userId, photoBuf, caption, btns);
+            if (result && result.ok) return;
+            console.log('[CHANNEL] Photo send failed, falling back to text');
+        }
+    } catch (e) {
+        console.error('[CHANNEL PHOTO ERROR]', e.message);
     }
+    // Fallback: text-only message (always works)
+    await sendNew(chatId, userId, caption, btns);
 }
 
 async function showMainMenu(chatId, userId, lang, msgId) {
@@ -983,7 +1003,9 @@ async function handleUpdate(update) {
             await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
         }
     } catch (error) {
-        console.error('handleUpdate error:', error);
+        console.error('handleUpdate error:', error.message || error);
+        // If photo failed, try to recover by sending text-only
+        // (main recovery is already in showChannelRequired)
     }
 }
 
