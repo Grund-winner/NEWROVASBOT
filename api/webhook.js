@@ -371,6 +371,68 @@ T.pt = {
 // HELPERS - Un seul message a la fois
 // ═══════════════════════════════════════════════════════
 
+const fs = require('fs');
+const path = require('path');
+
+// ─── Channel photo (sent as buffer via multipart, never Vercel URL) ───
+let _channelPhotoFileId = null;
+
+async function tgSendPhoto(chatId, userId, photoBuffer, caption, btns) {
+    // Delete previous message
+    const user = userId ? await getUser(userId) : null;
+    if (user && user.last_message_id) {
+        await deleteMsg(chatId, user.last_message_id);
+    }
+    // Use cached file_id if available
+    if (_channelPhotoFileId) {
+        try {
+            const res = await tgAPI('sendPhoto', {
+                chat_id: chatId, photo: _channelPhotoFileId,
+                caption, parse_mode: 'HTML',
+                reply_markup: { inline_keyboard: btns }
+            });
+            if (res.ok) {
+                if (userId) await saveLastMsg(userId, res.result.message_id);
+                return res;
+            }
+        } catch (e) { console.log('[CHANNEL PHOTO] file_id expired, re-uploading'); }
+    }
+    // Upload via multipart/form-data
+    const FormData = (await import('form-data')).default;
+    const form = new FormData();
+    form.append('chat_id', String(chatId));
+    form.append('photo', photoBuffer, { filename: 'joinch.png', contentType: 'image/png' });
+    form.append('caption', caption);
+    form.append('parse_mode', 'HTML');
+    form.append('reply_markup', JSON.stringify({ inline_keyboard: btns }));
+    try {
+        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+            method: 'POST', body: form,
+            headers: form.getHeaders()
+        });
+        const data = await res.json();
+        if (data.ok) {
+            // Cache file_id for future sends
+            const photos = data.result.photo;
+            if (photos && photos.length > 0) {
+                _channelPhotoFileId = photos[photos.length - 1].file_id;
+            }
+            if (userId) await saveLastMsg(userId, data.result.message_id);
+        }
+        return data;
+    } catch (e) {
+        console.error('[tgSendPhoto ERROR]', e);
+        return { ok: false };
+    }
+}
+
+function getChannelPhotoBuffer() {
+    const imgPath = path.join(__dirname, '..', 'identite_visuel.png');
+    if (fs.existsSync(imgPath)) return fs.readFileSync(imgPath);
+    console.error('[CHANNEL PHOTO] File not found:', imgPath);
+    return null;
+}
+
 // ─── MEDIA MAPPING (file_id stored on Telegram) ───
 const MEDIA = {
     vip:             { type: 'photo', file_id: 'AgACAgQAAxkDAAMfagABzG1EzdBgT_-K3L5i1MUUWkkRAAKzD2sb5G4JUEjo0jbkifEFAQADAgADeQADOwQ' },
@@ -490,6 +552,13 @@ async function createUser(tid, username, fn, ln, referredBy) {
         [tid, username, fn, ln, referredBy || null]
     );
     return r[0] || null;
+}
+
+// ─── Save last message ID ───
+async function saveLastMsg(userId, msgId) {
+    try {
+        await query('UPDATE users SET last_message_id = $1, updated_at = NOW() WHERE telegram_id = $2', [msgId, userId]);
+    } catch (e) {}
 }
 
 // Referral link: https://t.me/bot?start=ref123456789
@@ -617,7 +686,14 @@ async function showLanguageSelection(chatId, userId, msgId) {
 
 async function showChannelRequired(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
-    await sendNew(chatId, userId, t('channel_required', lang), channelButtons(lang));
+    const photoBuf = getChannelPhotoBuffer();
+    const caption = t('channel_required', lang);
+    const btns = channelButtons(lang);
+    if (photoBuf) {
+        await tgSendPhoto(chatId, userId, photoBuf, caption, btns);
+    } else {
+        await sendNew(chatId, userId, caption, btns);
+    }
 }
 
 async function showMainMenu(chatId, userId, lang, msgId) {

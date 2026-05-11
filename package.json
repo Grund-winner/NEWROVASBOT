@@ -4,6 +4,7 @@
   "description": "ROVAS Telegram Bot",
   "private": true,
   "dependencies": {
+    "form-data": "^4.0.1",
     "node-fetch": "^2.7.0",
     "pg": "^8.13.0"
   }
