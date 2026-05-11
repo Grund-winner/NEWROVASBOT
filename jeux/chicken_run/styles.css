@@ -705,7 +705,7 @@ body::after {
 }
 
 .get-signal-btn {
-    background: linear-gradient(145deg, #38bdf8, #0284c7);
+    background: linear-gradient(145deg, #e8367a, #9c1458);
     color: white;
     border: 3px solid transparent;
     padding: 20px 40px;
@@ -739,7 +739,7 @@ body::after {
     box-shadow: 
         0 12px 35px rgba(56, 189, 248, 0.6),
         inset 0 2px 0 rgba(255, 255, 255, 0.3);
-    background: linear-gradient(145deg, #7dd3fc, #38bdf8);
+    background: linear-gradient(145deg, #f472b6, #e8367a);
 }
 
 .get-signal-btn:hover::before {

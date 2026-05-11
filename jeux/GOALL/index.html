@@ -14,14 +14,14 @@ html,body{touch-action:pan-x pan-y!important;-ms-touch-action:pan-x pan-y!import
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --rovas-bg: #0a1628;
-  --rovas-bg2: #0f1f3a;
-  --rovas-cyan: #38bdf8;
-  --rovas-cyan-dark: #0284c7;
-  --rovas-cyan-light: #7dd3fc;
-  --rovas-glass: rgba(56,189,248,0.08);
-  --rovas-glass-light: rgba(56,189,248,0.15);
-  --rovas-glass-border: rgba(56,189,248,0.15);
+  --rovas-bg: #14000c;
+  --rovas-bg2: #1e0012;
+  --rovas-cyan: #e8367a;
+  --rovas-cyan-dark: #9c1458;
+  --rovas-cyan-light: #f472b6;
+  --rovas-glass: rgba(232,54,122,0.08);
+  --rovas-glass-light: rgba(232,54,122,0.15);
+  --rovas-glass-border: rgba(232,54,122,0.15);
   --rovas-text: #f0f9ff;
   --rovas-text-muted: #7b93ab;
   --rovas-green: #34d399;
@@ -36,7 +36,7 @@ html,body{touch-action:pan-x pan-y!important;-ms-touch-action:pan-x pan-y!import
 
 body.rovas-body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(145deg, #0a1628 0%, #0f1f3a 40%, #0a1628 70%, #0a1628 100%);
+  background: linear-gradient(145deg, #14000c 0%, #1e0012 40%, #14000c 70%, #14000c 100%);
   color: var(--rovas-text);
   min-height: 100vh;
   overflow-x: hidden;
@@ -50,7 +50,7 @@ body.rovas-body::before {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 20%, rgba(56,189,248,0.04) 0%, transparent 50%),
+  background: radial-gradient(circle at 30% 20%, rgba(232,54,122,0.04) 0%, transparent 50%),
               radial-gradient(circle at 70% 80%, rgba(68,138,255,0.03) 0%, transparent 50%);
   animation: e54-ambientDrift 20s ease-in-out infinite alternate;
   pointer-events: none;
@@ -71,7 +71,7 @@ body.rovas-body::before {
   z-index: 100;
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  background: rgba(10,22,40,0.75);
+  background: rgba(20,0,12,0.75);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   padding: 12px 20px;
   display: flex;
@@ -94,7 +94,7 @@ body.rovas-body::before {
   background-clip: text;
   letter-spacing: -0.5px;
   text-shadow: none;
-  filter: drop-shadow(0 1px 2px rgba(56,189,248,0.3));
+  filter: drop-shadow(0 1px 2px rgba(232,54,122,0.3));
 }
 
 .e54-logo-sub {
@@ -177,7 +177,7 @@ body.rovas-body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, rgba(10,22,40,0.6) 0%, transparent 15%, transparent 85%, rgba(10,22,40,0.6) 100%);
+  background: linear-gradient(180deg, rgba(20,0,12,0.6) 0%, transparent 15%, transparent 85%, rgba(20,0,12,0.6) 100%);
   pointer-events: none;
   z-index: 2;
   border-radius: var(--rovas-radius);
@@ -190,13 +190,13 @@ body.rovas-body::before {
   border-radius: var(--rovas-radius);
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
-  background: linear-gradient(135deg, rgba(56,189,248,0.08) 0%, rgba(255,255,255,0.04) 100%);
-  border: 1px solid rgba(56,189,248,0.15);
+  background: linear-gradient(135deg, rgba(232,54,122,0.08) 0%, rgba(255,255,255,0.04) 100%);
+  border: 1px solid rgba(232,54,122,0.15);
   text-align: center;
   position: relative;
   overflow: hidden;
   animation: e54-fadeInUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.35s both;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2), 0 0 40px rgba(56,189,248,0.05);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2), 0 0 40px rgba(232,54,122,0.05);
 }
 
 .e54-prediction::before {
@@ -206,7 +206,7 @@ body.rovas-body::before {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(45deg, transparent 40%, rgba(56,189,248,0.05) 50%, transparent 60%);
+  background: linear-gradient(45deg, transparent 40%, rgba(232,54,122,0.05) 50%, transparent 60%);
   animation: e54-shimmer 4s ease-in-out infinite;
 }
 
@@ -271,27 +271,27 @@ body.rovas-body::before {
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: 700;
-  color: #0a1628;
+  color: #14000c;
   background: linear-gradient(135deg, var(--rovas-cyan-light), var(--rovas-cyan), var(--rovas-cyan-dark));
   background-size: 200% 200%;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow: 0 4px 16px rgba(56,189,248,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow: 0 4px 16px rgba(232,54,122,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
   animation: e54-fadeInUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.45s both;
   margin-top: 20px;
 }
 
 .e54-btn:active {
   transform: scale(0.96);
-  box-shadow: 0 2px 8px rgba(56,189,248,0.15);
+  box-shadow: 0 2px 8px rgba(232,54,122,0.15);
 }
 
 .e54-btn:hover {
   background-position: 100% 0;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(56,189,248,0.3);
+  box-shadow: 0 8px 24px rgba(232,54,122,0.3);
 }
 
 .e54-btn-back {
@@ -336,8 +336,8 @@ body.rovas-body::before {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  border: 1px solid rgba(56,189,248,0.3);
-  background: rgba(56,189,248,0.08);
+  border: 1px solid rgba(232,54,122,0.3);
+  background: rgba(232,54,122,0.08);
   color: var(--rovas-cyan);
   font-size: 1.2rem;
   font-weight: 700;
@@ -376,9 +376,9 @@ body.rovas-body::before {
 
 .e54-mines-tile:hover {
   transform: scale(1.06);
-  background: rgba(56,189,248,0.1);
-  border-color: rgba(56,189,248,0.2);
-  box-shadow: 0 0 16px rgba(56,189,248,0.1);
+  background: rgba(232,54,122,0.1);
+  border-color: rgba(232,54,122,0.2);
+  box-shadow: 0 0 16px rgba(232,54,122,0.1);
 }
 
 .e54-mines-tile.revealed {
@@ -404,8 +404,8 @@ body.rovas-body::before {
   justify-content: space-around;
   padding: 10px;
   border-radius: var(--rovas-radius-sm);
-  background: rgba(56,189,248,0.06);
-  border: 1px solid rgba(56,189,248,0.1);
+  background: rgba(232,54,122,0.06);
+  border: 1px solid rgba(232,54,122,0.1);
   margin-bottom: 16px;
 }
 
@@ -432,8 +432,8 @@ body.rovas-body::before {
   padding: 6px 14px;
   border-radius: 20px;
   backdrop-filter: blur(16px);
-  background: rgba(56,189,248,0.1);
-  border: 1px solid rgba(56,189,248,0.15);
+  background: rgba(232,54,122,0.1);
+  border: 1px solid rgba(232,54,122,0.15);
   font-size: 0.6rem;
   font-weight: 700;
   color: var(--rovas-cyan);
@@ -501,7 +501,7 @@ body.rovas-body::before {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(56,189,248,0.5));
+  filter: drop-shadow(0 2px 6px rgba(232,54,122,0.5));
 }
 .ball.landing {
   animation: e54-springBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -509,7 +509,7 @@ body.rovas-body::before {
 .ball-trail { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
 .trail-particle {
   position: absolute; border-radius: 50%;
-  background: radial-gradient(circle, rgba(56,189,248,0.6), transparent);
+  background: radial-gradient(circle, rgba(232,54,122,0.6), transparent);
   animation: trailFade 0.6s ease-out forwards;
 }
 @keyframes trailFade {
@@ -529,7 +529,7 @@ body.rovas-body::before {
   appearance: none;
   cursor: pointer;
 }
-.size-select option { background: #0f1f3a; color: white; }
+.size-select option { background: #1e0012; color: white; }
 .modal {
   display: none;
   position: fixed;
