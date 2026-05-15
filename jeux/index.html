@@ -179,6 +179,58 @@ body::after{
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── SEARCH BAR ── */
+.dvys-search-wrap{
+  position:relative;z-index:1;
+  max-width:500px;margin:0 auto;
+  padding:0 16px 16px;
+  display:none;
+  animation:dvys-fadeInUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.dvys-search-wrap.show{display:block}
+.dvys-search-input{
+  width:100%;padding:12px 16px 12px 44px;
+  border:1.5px solid var(--rv-border);
+  border-radius:14px;
+  background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  font-family:'Poppins',sans-serif;
+  font-size:0.84rem;font-weight:500;
+  color:var(--rv-text);
+  outline:none;transition:all 0.3s;
+  box-shadow:0 2px 12px var(--rv-shadow);
+}
+.dvys-search-input::placeholder{color:var(--rv-text-muted);font-weight:500}
+.dvys-search-input:focus{
+  border-color:var(--rv-primary);
+  box-shadow:0 0 0 3px rgba(232,56,143,0.12),0 4px 16px var(--rv-shadow-strong);
+  background:rgba(255,255,255,0.85);
+}
+.dvys-search-icon{
+  position:absolute;left:30px;top:50%;transform:translateY(-50%);
+  pointer-events:none;color:var(--rv-text-muted);transition:color 0.3s;
+}
+.dvys-search-wrap:focus-within .dvys-search-icon{color:var(--rv-primary)}
+.dvys-search-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dvys-search-clear{
+  position:absolute;right:30px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;border-radius:50%;
+  background:var(--rv-accent-soft);border:1px solid var(--rv-border);
+  color:var(--rv-text-muted);font-size:0.7rem;font-weight:700;
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.2s;line-height:1;
+}
+.dvys-search-clear.show{display:flex}
+.dvys-search-clear:hover{background:var(--rv-accent-medium);color:var(--rv-primary)}
+.dvys-no-results{
+  grid-column:1/-1;text-align:center;padding:40px 20px;
+  color:var(--rv-text-muted);font-size:0.85rem;font-weight:500;
+  display:none;
+}
+.dvys-no-results.show{display:block}
+.dvys-no-results span{font-size:1.6rem;display:block;margin-bottom:6px}
+
 /* ── GAME GRID ── */
 .dvys-grid{
   position:relative;z-index:1;
@@ -528,6 +580,13 @@ html[dir="rtl"] .dvys-info-box .step{flex-direction:row-reverse}
   <p id="heroSubtitle">...</p>
 </div>
 
+<!-- SEARCH BAR -->
+<div class="dvys-search-wrap" id="searchWrap">
+  <span class="dvys-search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+  <input type="text" class="dvys-search-input" id="searchInput" placeholder="Rechercher un jeu..." oninput="onSearch(this.value)">
+  <span class="dvys-search-clear" id="searchClear" onclick="clearSearch()">×</span>
+</div>
+
 <!-- LOADING -->
 <div class="dvys-loading" id="loadingGames">
   <div class="dvys-loading-spinner"></div>
@@ -672,6 +731,8 @@ var I18N = {
     dep_min_text: 'Montant minimum pour debloquer ce jeu',
     // Generic modal
     gen_title: 'Jeu verrouille',
+    search_placeholder: 'Rechercher un jeu...',
+    no_results: 'Aucun jeu trouve pour',
     gen_text: 'Ce jeu n\'est pas encore disponible. Revenez plus tard.'
   },
   en: {
@@ -724,6 +785,8 @@ var I18N = {
     dep_for_unlock: 'Make this deposit to unlock',
     dep_min_text: 'Minimum amount to unlock this game',
     gen_title: 'Game locked',
+    search_placeholder: 'Search a game...',
+    no_results: 'No games found for',
     gen_text: 'This game is not yet available. Come back later.'
   },
   hi: {
@@ -776,6 +839,8 @@ var I18N = {
     dep_for_unlock: '\u0905\u0928\u0932\u0949\u0915 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u092F\u0939 \u091C\u092E\u093E \u0915\u0930\u0947\u0902',
     dep_min_text: '\u0907\u0938 \u0917\u0947\u092E \u0915\u094B \u0905\u0928\u0932\u0949\u0915 \u0915\u0930\u0928\u0947 \u0915\u093E \u0928\u094D\u092F\u0942\u0928\u0924\u092E \u091C\u092E\u093E',
     gen_title: '\u0917\u0947\u092E \u0932\u0949\u0915\u094D\u0921',
+    search_placeholder: '\u0916\u0947\u0932 \u0916\u094B\u091C\u0947\u0902...',
+    no_results: 'is ke liye koi game nahi mili',
     gen_text: '\u092F\u0939 \u0917\u0947\u092E \u0905\u092D\u0940 \u0909\u092A\u0932\u092C\u094D\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964 \u092C\u093E\u0926 \u092E\u0947\u0902 \u0906\u090F\u0902\u0964'
   },
   uz: {
@@ -828,6 +893,8 @@ var I18N = {
     dep_for_unlock: 'Ochish uchun shu miqdorni to\'ldiring',
     dep_min_text: 'Bu o\'yinni ochish uchun minimal miqdor',
     gen_title: 'O\'yin bloklangan',
+    search_placeholder: "O\'yin qidirish...",
+    no_results: "Hech qanday o\'yin topilmadi",
     gen_text: 'Bu o\'yin hali mavjud emas. Keyinroq qaytib keling.'
   },
   es: {
@@ -880,6 +947,8 @@ var I18N = {
     dep_for_unlock: 'Realice este deposito para desbloquear',
     dep_min_text: 'Monto minimo para desbloquear este juego',
     gen_title: 'Juego bloqueado',
+    search_placeholder: 'Buscar un juego...',
+    no_results: 'Ningun juego encontrado para',
     gen_text: 'Este juego no esta disponible aun. Vuelva mas tarde.'
   },
   az: {
@@ -932,6 +1001,8 @@ var I18N = {
     dep_for_unlock: 'Acmaq ucun bu mebleqi daxil edin',
     dep_min_text: 'Bu oyunu acmaq ucun minimal mebleq',
     gen_title: 'Oyun bloklanib',
+    search_placeholder: 'Oyun axtar...',
+    no_results: 'He\u00E7 bir oyun tap\u0131lmad\u0131',
     gen_text: 'Bu oyun h\u0259l\u0259 movcud deyil. Sonra qayidin.'
   },
   tr: {
@@ -984,6 +1055,8 @@ var I18N = {
     dep_for_unlock: 'Acmak icin bu tutari yatirin',
     dep_min_text: 'Bu oyunu acmak icin minimum tutar',
     gen_title: 'Oyun kilitli',
+    search_placeholder: 'Oyun ara...',
+    no_results: 'Oyun bulunamadi',
     gen_text: 'Bu oyun henuz mevcut degil. Daha sonra tekrar gelin.'
   },
   ar: {
@@ -1036,6 +1109,8 @@ var I18N = {
     dep_for_unlock: '\u0623\u0648\u062F\u0639 \u0647\u0630\u0627 \u0627\u0644\u0645\u0628\u0644\u063A \u0644\u0644\u0641\u062A\u062D',
     dep_min_text: '\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0644\u0641\u062A\u062D \u0647\u0630\u0647 \u0627\u0644\u0644\u0639\u0628\u0629',
     gen_title: '\u0627\u0644\u0644\u0639\u0628\u0629 \u0645\u0642\u0641\u0644\u0629',
+    search_placeholder: '\u0628\u062D\u062B \u0639\u0646 \u0644\u0639\u0628\u0629...',
+    no_results: '\u0644\u0645 \u064A\u062A\u0645 \u0627\u0644\u0639\u062B\u0648\u0631 \u0639\u0644\u0649 \u0644\u0639\u0628\u0629',
     gen_text: '\u0647\u0630\u0647 \u0627\u0644\u0644\u0639\u0628\u0629 \u063A\u064A\u0631 \u0645\u062A\u0627\u062D\u0629 \u0628\u0639\u062F. \u0639\u062F \u0644\u0627\u062D\u0642\u0627\u064B.'
   },
   ru: {
@@ -1088,6 +1163,8 @@ var I18N = {
     dep_for_unlock: '\u0412\u043D\u0435\u0441\u0438\u0442\u0435 \u044D\u0442\u043E\u0442 \u0434\u0435\u043F\u043E\u0437\u0438\u0442 \u0434\u043B\u044F \u0440\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0438',
     dep_min_text: '\u041C\u0438\u043D\u0438\u043C\u0430\u043B\u044C\u043D\u0430\u044F \u0441\u0443\u043C\u043C\u0430 \u0434\u043B\u044F \u0440\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0438',
     gen_title: '\u0418\u0433\u0440\u0430 \u0437\u0430\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043D\u0430',
+    search_placeholder: '\u041D\u0430\u0439\u0442\u0438 \u0438\u0433\u0440\u0443...',
+    no_results: '\u0418\u0433\u0440\u0430 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u0430',
     gen_text: '\u042D\u0442\u0430 \u0438\u0433\u0440\u0430 \u043F\u043E\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430. \u0412\u0435\u0440\u043D\u0438\u0442\u0435\u0441\u044C \u043F\u043E\u0437\u0436\u0435.'
   },
   pt: {
@@ -1140,6 +1217,8 @@ var I18N = {
     dep_for_unlock: 'Faca este deposito para desbloquear',
     dep_min_text: 'Valor minimo para desbloquear este jogo',
     gen_title: 'Jogo bloqueado',
+    search_placeholder: 'Pesquisar um jogo...',
+    no_results: 'Nenhum jogo encontrado para',
     gen_text: 'Este jogo ainda nao esta disponivel. Volte mais tarde.'
   }
 };
@@ -1229,10 +1308,13 @@ async function loadGames() {
     }
 
     var games = data.games;
+    window._allGames = games;
     var gWord = games.length > 1 ? t('hero_games_pl') : t('hero_games');
     document.getElementById('heroSubtitle').textContent = games.length + ' ' + gWord + ' \u00B7 ' + t('hero_after');
     renderGames(games);
     document.getElementById('gamesGrid').style.display = 'grid';
+    document.getElementById('searchWrap').classList.add('show');
+    document.getElementById('searchInput').placeholder = t('search_placeholder');
   } catch(e) {
     console.error('Load games error:', e);
     document.getElementById('loadingGames').innerHTML = '<div style="color:var(--rv-red);font-size:0.82rem">' + escHtml(t('error_load')) + '</div>';
@@ -1242,6 +1324,14 @@ async function loadGames() {
 function renderGames(games) {
   var grid = document.getElementById('gamesGrid');
   var html = '';
+
+  if (games.length === 0 && window._searchActive) {
+    var query = document.getElementById('searchInput').value.trim();
+    html = '<div class="dvys-no-results show"><span>\uD83D\uDD0D</span>' + escHtml(t('no_results')) + ' "' + escHtml(query) + '"</div>';
+    grid.innerHTML = html;
+    return;
+  }
+
   games.forEach(function(g, i) {
     var isLocked = g.lock_status === 'locked';
     var delay = i * 60;
@@ -1275,6 +1365,35 @@ function renderGames(games) {
 
   // Store games data for lock modal
   window._gamesData = games;
+}
+
+// ─── SEARCH FILTER ───
+window._searchActive = false;
+
+function onSearch(query) {
+  var clearBtn = document.getElementById('searchClear');
+  var q = (query || '').trim().toLowerCase();
+
+  if (q.length > 0) {
+    clearBtn.classList.add('show');
+    window._searchActive = true;
+  } else {
+    clearBtn.classList.remove('show');
+    window._searchActive = false;
+  }
+
+  var allGames = window._allGames || [];
+  var filtered = allGames.filter(function(g) {
+    return g.name.toLowerCase().indexOf(q) !== -1;
+  });
+
+  renderGames(filtered);
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  onSearch('');
+  document.getElementById('searchInput').focus();
 }
 
 function openGame(url) {
