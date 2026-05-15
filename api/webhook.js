@@ -752,66 +752,87 @@ async function sendVIPMessage(chatId, userId, lang, msgId) {
 // ═══════════════════════════════════════════════════════
 
 async function handleText(chatId, from, text) {
-    let session = null;
-    try { session = await getTempState(from.id); } catch (e) { console.log('[HANDLE_TEXT] getTempState error:', e.message); }
+    const userId = from.id;
+    console.log('[HANDLE_TEXT] Received text from user', userId, ':', text);
     
-    if (!session || session.action !== 'already_registered') return;
+    let session = null;
+    try { session = await getTempState(userId); } catch (e) {
+        console.log('[HANDLE_TEXT] getTempState error:', e.message);
+        // Try to set session again just in case
+        try { await setTempState(userId, 'already_registered'); session = { action: 'already_registered' }; } catch (e2) {}
+    }
+    
+    console.log('[HANDLE_TEXT] Session:', session ? session.action : 'NULL');
+    
+    if (!session || session.action !== 'already_registered') {
+        console.log('[HANDLE_TEXT] No valid session, ignoring text input');
+        return;
+    }
     
     const winId = text.trim();
+    console.log('[HANDLE_TEXT] Processing 1Win ID:', winId);
     
     // Clear temp state immediately
-    try { await clearTempState(from.id); } catch (e) {}
+    try { await clearTempState(userId); } catch (e) {}
     
-    const user = await getUser(from.id);
+    const user = await getUser(userId);
     const lang = user ? (user.language || 'fr') : 'fr';
     
     // Check if this 1Win ID exists in DB
     let found = [];
     try { found = await query('SELECT * FROM users WHERE one_win_user_id = $1', [winId]); } catch (e) {
         console.log('[HANDLE_TEXT] DB error:', e.message);
-        await tgAPI('sendMessage', { chat_id: chatId, text: 'Erreur serveur. Reessayez.', parse_mode: 'HTML' });
+        try { await tgAPI('sendMessage', { chat_id: chatId, text: 'Erreur serveur. Reessayez.', parse_mode: 'HTML' }); } catch (e2) {}
         return;
     }
     
+    console.log('[HANDLE_TEXT] Found', found.length, 'row(s) for 1Win ID:', winId);
+    
     if (found.length === 0) {
         // ID not found - tell user to register with ROVAS promo code
-        await tgAPI('sendMessage', {
-            chat_id: chatId,
-            text: t('already_registered_notfound', lang),
-            parse_mode: 'HTML',
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: t('btn_register_now', lang), url: regLink(from.id) }],
-                    [{ text: t('btn_back', lang), callback_data: 'back' }]
-                ]
-            }
-        });
+        console.log('[HANDLE_TEXT] ID not found, sending notfound message');
+        try {
+            await tgAPI('sendMessage', {
+                chat_id: chatId,
+                text: t('already_registered_notfound', lang),
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: t('btn_register_now', lang), url: regLink(userId) }],
+                        [{ text: t('btn_back', lang), callback_data: 'back' }]
+                    ]
+                }
+            });
+        } catch (e) { console.log('[HANDLE_TEXT] Error sending notfound:', e.message); }
         return;
     }
     
     const u = found[0];
+    console.log('[HANDLE_TEXT] Found user row:', { telegram_id: u.telegram_id, is_registered: u.is_registered, deposit: u.deposit_amount });
     
     // TAKEOVER: If this 1Win ID is already linked to ANOTHER Telegram user, clear their association
-    if (u.telegram_id && String(u.telegram_id) !== String(from.id)) {
-        console.log('[TAKEOVER] User', from.id, 'taking over 1Win ID', winId, 'from user', u.telegram_id);
+    if (u.telegram_id && String(u.telegram_id) !== String(userId)) {
+        console.log('[TAKEOVER] User', userId, 'taking over 1Win ID', winId, 'from user', u.telegram_id);
         try {
             await query(`UPDATE users SET one_win_user_id = NULL, is_registered = FALSE, is_deposited = FALSE, deposit_amount = 0, registered_at = NULL, deposited_at = NULL, updated_at = NOW() WHERE telegram_id = $1`, [u.telegram_id]);
+            console.log('[TAKEOVER] Old user association cleared');
         } catch (e) { console.log('[TAKEOVER] Error clearing old user:', e.message); }
     }
     
     // Link the 1Win ID to the CURRENT Telegram user
     try {
-        const botUser = await getUser(from.id);
+        const botUser = await getUser(userId);
         await query(`UPDATE users SET one_win_user_id = $1, is_registered = TRUE, is_deposited = $2, deposit_amount = $3,
             registered_at = CASE WHEN registered_at IS NULL THEN $4 ELSE registered_at END,
             deposited_at = CASE WHEN $2 AND deposited_at IS NULL THEN $5 ELSE deposited_at END,
             referred_by = CASE WHEN referred_by IS NULL THEN $6 ELSE referred_by END,
             updated_at = NOW() WHERE telegram_id = $7`,
             [winId, !!u.is_deposited, u.deposit_amount || 0, u.registered_at, u.deposited_at,
-             u.referred_by || (botUser ? botUser.referred_by : null), from.id]);
+             u.referred_by || (botUser ? botUser.referred_by : null), userId]);
+        console.log('[HANDLE_TEXT] ID linked successfully to user', userId);
     } catch (e) {
         console.log('[HANDLE_TEXT] Error linking ID:', e.message);
-        await tgAPI('sendMessage', { chat_id: chatId, text: 'Erreur serveur. Reessayez.', parse_mode: 'HTML' });
+        try { await tgAPI('sendMessage', { chat_id: chatId, text: 'Erreur serveur. Reessayez.', parse_mode: 'HTML' }); } catch (e2) {}
         return;
     }
     
@@ -820,52 +841,57 @@ async function handleText(chatId, from, text) {
         try { await query('DELETE FROM users WHERE one_win_user_id = $1 AND telegram_id IS NULL', [winId]); } catch (e) {}
     }
     
-    const updated = await getUser(from.id);
+    const updated = await getUser(userId);
+    console.log('[HANDLE_TEXT] Updated user:', { is_registered: updated.is_registered, deposit: updated.deposit_amount });
     
     // Show result based on deposit status
-    if (updated.is_registered && hasValidDeposit(updated)) {
-        // VIP access - all good
-        await tgAPI('sendMessage', {
-            chat_id: chatId,
-            text: t('already_registered_success', lang),
-            parse_mode: 'HTML',
-            reply_markup: { inline_keyboard: vipButtons(from.id, lang) }
-        });
-    } else if (updated.is_registered) {
-        // Registered but need deposit
-        const dep = parseFloat(updated.deposit_amount) || 0;
-        let msg;
-        if (dep > 0 && dep < MIN_DEPOSIT) {
-            const remaining = (MIN_DEPOSIT - dep).toFixed(2);
-            const l = LANGS[lang] || LANGS.fr;
-            const local = Math.ceil(parseFloat(remaining) * l.rate);
-            msg = t('already_registered_success', lang) + '\n\n' +
-                t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
-                t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
+    try {
+        if (updated.is_registered && hasValidDeposit(updated)) {
+            // VIP access - all good
+            await tgAPI('sendMessage', {
+                chat_id: chatId,
+                text: t('already_registered_success', lang),
+                parse_mode: 'HTML',
+                reply_markup: { inline_keyboard: vipButtons(userId, lang) }
+            });
+        } else if (updated.is_registered) {
+            // Registered but need deposit
+            const dep = parseFloat(updated.deposit_amount) || 0;
+            let msg;
+            if (dep > 0 && dep < MIN_DEPOSIT) {
+                const remaining = (MIN_DEPOSIT - dep).toFixed(2);
+                const l = LANGS[lang] || LANGS.fr;
+                const local = Math.ceil(parseFloat(remaining) * l.rate);
+                msg = t('already_registered_success', lang) + '\n\n' +
+                    t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
+                    t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
+            } else {
+                msg = t('already_registered_success', lang) + '\n\n' + t('deposit', lang);
+            }
+            await tgAPI('sendMessage', {
+                chat_id: chatId, text: msg, parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: t('btn_deposit', lang), url: depLink(userId) }],
+                        [{ text: t('btn_back', lang), callback_data: 'back' }]
+                    ]
+                }
+            });
         } else {
-            msg = t('already_registered_success', lang) + '\n\n' + t('deposit', lang);
+            await tgAPI('sendMessage', {
+                chat_id: chatId,
+                text: t('register', lang),
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: t('btn_register_now', lang), url: regLink(userId) }],
+                        [{ text: t('btn_back', lang), callback_data: 'back' }]
+                    ]
+                }
+            });
         }
-        await tgAPI('sendMessage', {
-            chat_id: chatId, text: msg, parse_mode: 'HTML',
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: t('btn_deposit', lang), url: depLink(from.id) }],
-                    [{ text: t('btn_back', lang), callback_data: 'back' }]
-                ]
-            }
-        });
-    } else {
-        await tgAPI('sendMessage', {
-            chat_id: chatId,
-            text: t('register', lang),
-            parse_mode: 'HTML',
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: t('btn_register_now', lang), url: regLink(from.id) }],
-                    [{ text: t('btn_back', lang), callback_data: 'back' }]
-                ]
-            }
-        });
+    } catch (e) {
+        console.log('[HANDLE_TEXT] Error sending result:', e.message);
     }
 }
 
@@ -922,9 +948,11 @@ async function handleUpdate(update) {
 
         // ─── TEXT INPUT (1Win ID) ───
         if (update.message && update.message.text && !update.message.text.startsWith('/start')) {
+            // Process text FIRST, then delete (to avoid losing user input)
+            await handleText(update.message.chat.id, update.message.from, update.message.text);
             // Delete user's text message to keep chat clean
             await deleteMsg(update.message.chat.id, update.message.message_id);
-            return await handleText(update.message.chat.id, update.message.from, update.message.text);
+            return;
         }
 
         // ─── CALLBACK QUERIES ───
