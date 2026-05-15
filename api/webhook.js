@@ -433,10 +433,10 @@ const MEDIA = {
     vip:             { type: 'photo', file_id: 'AgACAgQAAxkDAAMfagABzG1EzdBgT_-K3L5i1MUUWkkRAAKzD2sb5G4JUEjo0jbkifEFAQADAgADeQADOwQ' },
     instructions:    { type: 'photo', file_id: 'AgACAgQAAxkDAAMgagABzG4qBPJMU_zJOVJBKRkC-R5aAAK0D2sb5G4JUB6slju_dmf2AQADAgADdwADOwQ' },
     defautmenu:      { type: 'photo', file_id: 'AgACAgQAAxkDAAMeagABzGyec9iPdkvyaMsySImsQ-LOAAKyD2sb5G4JUP4WqEnvJLrqAQADAgADeQADOwQ' },
-    fr_inscription:  { type: 'video', file_id: 'BAACAgQAAxkDAAMhagABzHAAAZsFzp-4sYx3WmIgwfQKdAACNxoAAuRuCVAbslZHd_gXETsE' },
-    other_inscription:{ type: 'video', file_id: 'BAACAgQAAxkDAAMiagABzHBwDrbTwo-vWuaqL78Mi-Y5AAI4GgAC5G4JUHB-EFNV1RtoOwQ' },
-    fr_depot:        { type: 'video', file_id: 'BAACAgQAAxkDAAMjagABzHIhTv4-L-1bvBHJa6ry4NuVAAI5GgAC5G4JULTkYixGi5ipOwQ' },
-    other_depot:     { type: 'video', file_id: 'BAACAgQAAxkDAAMkagABzHMEmg_NNeAf2677A9LH01uIAAI6GgAC5G4JULSpq4igUkYCOwQ' }
+    fr_inscription:  { type: 'video', file_id: 'BAACAgQAAxkDAAICA2oHZD0bvOLDyG9VGPl6rpGG0gY_AAIUHgAChNo5UO4HXl6cVGJjOwQ' },
+    other_inscription:{ type: 'video', file_id: 'BAACAgQAAxkDAAICBGoHZEUe7-_G0kFVhXkAAfnIp03AKwACFR4AAoTaOVAjaAbDRCElUTsE' },
+    fr_depot:        { type: 'video', file_id: 'BAACAgQAAxkDAAICBWoHZFG7-qSeSMJqMUtf-6RBvvCcAAIWHgAChNo5UJx0w40Kt-nMOwQ' },
+    other_depot:     { type: 'video', file_id: 'BAACAgQAAxkDAAICBmoHZFYs0rnLQl9wIjvxfKgqn5a1AAIXHgAChNo5UMSOdDwTJuPCOwQ' }
 };
 
 function getMedia(mediaKey, lang) {
@@ -868,10 +868,10 @@ async function handleText(chatId, from, text) {
             msg = t('already_registered_success', lang) + '\n\n' + t('deposit', lang);
         }
         await sendNew(chatId, userId, msg,
-            [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)]);
+            [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)], 'deposit');
     } else {
         await sendNew(chatId, userId, t('register', lang),
-            [[{ text: t('btn_register_now', lang), url: regLink(userId) }], backButton(lang)]);
+            [[{ text: t('btn_register_now', lang), url: regLink(userId) }], backButton(lang)], 'register');
     }
 }
 
@@ -1006,7 +1006,7 @@ async function handleUpdate(update) {
                 await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
                 await deleteMsg(chatId, msgId);
                 await sendNew(chatId, userId, t('register', lang),
-                    [[{ text: t('btn_register_now', lang), url: regLink(userId) }], [{ text: t('btn_back', lang), callback_data: 'back' }]]);
+                    [[{ text: t('btn_register_now', lang), url: regLink(userId) }], [{ text: t('btn_back', lang), callback_data: 'back' }]], 'register');
                 return;
             }
 
@@ -1046,7 +1046,7 @@ async function handleUpdate(update) {
                     }
                     await deleteMsg(chatId, msgId);
                     await sendNew(chatId, userId, msg,
-                        [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)]);
+                        [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)], 'deposit');
                 } else {
                     await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
                     await sendVIPMessage(chatId, userId, lang, msgId);
