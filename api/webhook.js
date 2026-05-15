@@ -713,17 +713,17 @@ async function showChannelRequired(chatId, userId, lang, msgId) {
 async function showMainMenu(chatId, userId, lang, msgId) {
     const caption = t('menu_text', lang);
     const btns = simpleMenuButtons(lang);
-    // Delete previous message
+    // Supprimer le message precedent
     if (msgId) await deleteMsg(chatId, msgId);
-    // Send menu with photo (defautmenu)
+    // Envoyer le menu avec la meme photo que le canal (joinch.png)
     try {
-        const result = await sendNew(chatId, userId, caption, btns, 'default');
+        const result = await sendPhotoMsg(chatId, userId, caption, btns, true);
         if (result && result.ok) return;
         console.log('[MENU] Photo send failed, falling back to text');
     } catch (e) {
         console.error('[MENU PHOTO ERROR]', e.message);
     }
-    // Fallback: text-only
+    // Fallback: texte uniquement
     try {
         await sendNew(chatId, userId, caption, btns);
     } catch (e) {
@@ -992,28 +992,33 @@ async function handleUpdate(update) {
                 return;
             }
 
-            // ─── BACK ───
+            // ─── RETOUR AU MENU ───
             if (data === 'back') {
-                await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
-                await clearTempState(userId);
-                // Refresh user data
-                user = await getUser(userId);
                 try {
-                    await showMainMenu(chatId, userId, lang, msgId);
-                } catch (e) {
-                    console.error('[BACK ERROR]', e.message);
-                    // Ultimate fallback: ensure user always sees the menu
+                    await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                } catch (e) {}
+                try { await clearTempState(userId); } catch (e) {}
+                // Supprimer le message actuel
+                try { await deleteMsg(chatId, msgId); } catch (e) {}
+                // Envoyer le menu avec la meme photo que le canal (joinch.png)
+                const menuCaption = t('menu_text', lang);
+                const menuBtns = simpleMenuButtons(lang);
+                let menuSent = false;
+                try {
+                    const res = await sendPhotoMsg(chatId, userId, menuCaption, menuBtns, true);
+                    if (res && res.ok) menuSent = true;
+                } catch (e) {}
+                // Si la photo a echoue, envoyer en texte
+                if (!menuSent) {
                     try {
-                        await sendNew(chatId, userId, t('menu_text', lang), simpleMenuButtons(lang));
-                    } catch (e2) {
-                        console.error('[BACK FALLBACK ERROR]', e2.message);
-                        await tgAPI('sendMessage', {
+                        const res = await tgAPI('sendMessage', {
                             chat_id: chatId,
-                            text: t('menu_text', lang),
+                            text: menuCaption,
                             parse_mode: 'HTML',
-                            reply_markup: { inline_keyboard: simpleMenuButtons(lang) }
+                            reply_markup: { inline_keyboard: menuBtns }
                         });
-                    }
+                        if (res && res.ok && userId) await saveLastMsg(userId, res.result.message_id);
+                    } catch (e) {}
                 }
                 return;
             }
