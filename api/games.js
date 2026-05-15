@@ -520,6 +520,37 @@ module.exports = async function handler(req, res) {
         }
 
         // ═══════════════════════════════════════════
+        // INIT STATS TABLES (create/recreate daily_stats + games)
+        // ═══════════════════════════════════════════
+        if (action === 'init_stats_tables') {
+            try { await query('DROP TABLE IF EXISTS daily_stats_games CASCADE'); } catch(e) {}
+            try { await query('DROP TABLE IF EXISTS daily_stats CASCADE'); } catch(e) {}
+            await query(`CREATE TABLE daily_stats (
+                id SERIAL PRIMARY KEY,
+                stat_date DATE NOT NULL UNIQUE,
+                total_players INTEGER DEFAULT 0,
+                total_bets NUMERIC DEFAULT 0,
+                total_winnings NUMERIC DEFAULT 0,
+                top_game_slug TEXT,
+                top_game_name TEXT,
+                top_game_players INTEGER DEFAULT 0,
+                top_game_winnings NUMERIC DEFAULT 0,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )`);
+            await query(`CREATE TABLE daily_stats_games (
+                id SERIAL PRIMARY KEY,
+                stat_id INTEGER NOT NULL REFERENCES daily_stats(id) ON DELETE CASCADE,
+                game_slug TEXT NOT NULL,
+                game_name TEXT,
+                players INTEGER DEFAULT 0,
+                winnings NUMERIC DEFAULT 0,
+                sort_order INTEGER DEFAULT 0,
+                UNIQUE(stat_id, game_slug)
+            )`);
+            return res.status(200).json({ success: true, message: 'daily_stats tables created successfully' });
+        }
+
+        // ═══════════════════════════════════════════
         // GENERATE STATS (admin)
         // Generates stats for yesterday based on 20% of total users
         // Each player: $20-$100 bet, random winnings (60%-180% of total bets)
@@ -530,13 +561,50 @@ module.exports = async function handler(req, res) {
             yesterday.setDate(yesterday.getDate() - 1);
             var dateStr = yesterday.toISOString().slice(0, 10);
 
-            // ── RUN MIGRATIONS: ensure columns exist ──
-            await ensureColumns();
+            // ── ENSURE TABLES EXIST WITH CORRECT SCHEMA ──
+            // Check if daily_stats_games has correct schema (stat_id column)
+            var needRecreateGames = false;
+            try {
+                var cols = await query("SELECT column_name FROM information_schema.columns WHERE table_name = 'daily_stats_games' AND column_name = 'stat_id'");
+                if (cols.length === 0) needRecreateGames = true;
+            } catch(e) {
+                needRecreateGames = true; // Table doesn't exist
+            }
+            if (needRecreateGames) {
+                try { await query('DROP TABLE IF EXISTS daily_stats_games CASCADE'); } catch(e) {}
+                await query(`CREATE TABLE daily_stats_games (
+                    id SERIAL PRIMARY KEY,
+                    stat_id INTEGER NOT NULL REFERENCES daily_stats(id) ON DELETE CASCADE,
+                    game_slug TEXT NOT NULL,
+                    game_name TEXT,
+                    players INTEGER DEFAULT 0,
+                    winnings NUMERIC DEFAULT 0,
+                    sort_order INTEGER DEFAULT 0,
+                    UNIQUE(stat_id, game_slug)
+                )`);
+                console.log('[STATS] Recreated daily_stats_games with correct schema');
+            }
+
+            // Ensure daily_stats exists
+            try {
+                await query(`CREATE TABLE IF NOT EXISTS daily_stats (
+                    id SERIAL PRIMARY KEY,
+                    stat_date DATE NOT NULL UNIQUE,
+                    total_players INTEGER DEFAULT 0,
+                    total_bets NUMERIC DEFAULT 0,
+                    total_winnings NUMERIC DEFAULT 0,
+                    top_game_slug TEXT,
+                    top_game_name TEXT,
+                    top_game_players INTEGER DEFAULT 0,
+                    top_game_winnings NUMERIC DEFAULT 0,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )`);
+            } catch(e) { console.log('[STATS] ensure daily_stats:', e.message); }
 
             // Check if already exists → delete and regenerate
             var existing = await query('SELECT id FROM daily_stats WHERE stat_date = $1', [dateStr]);
             if (existing.length > 0) {
-                await query('DELETE FROM daily_stats_games WHERE stat_id = $1', [existing[0].id]);
+                try { await query('DELETE FROM daily_stats_games WHERE stat_id = $1', [existing[0].id]); } catch(e) {}
                 await query('DELETE FROM daily_stats WHERE stat_date = $1', [dateStr]);
             }
 
