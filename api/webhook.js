@@ -749,17 +749,35 @@ async function showMainMenu(chatId, userId, lang, msgId) {
 
 async function sendVIPMessage(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
+    const caption = t('access_granted', lang);
+    const btns = vipButtons(userId, lang);
     try {
-        await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang), 'vip');
+        // Send VIP message with logo.png photo
+        const res = await tgAPI('sendPhoto', {
+            chat_id: chatId,
+            photo: PRODUCTION_URL + '/logo.png',
+            caption, parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: btns }
+        });
+        if (res.ok && userId) {
+            try { await deleteMsg(chatId, msgId); } catch (e) {}
+            await saveLastMsg(userId, res.result.message_id);
+            return;
+        }
+        console.log('[VIP] Photo send failed, trying mediaKey vip');
+        // Fallback: try with cached MEDIA.vip
+        await sendNew(chatId, userId, caption, btns, 'vip');
     } catch (e) {
         console.error('[VIP MSG ERROR]', e.message);
-        // Ultimate fallback: send simple message
-        await tgAPI('sendMessage', {
-            chat_id: chatId,
-            text: t('access_granted', lang),
-            parse_mode: 'HTML',
-            reply_markup: { inline_keyboard: vipButtons(userId, lang) }
-        });
+        // Ultimate fallback: text only
+        try {
+            await tgAPI('sendMessage', {
+                chat_id: chatId,
+                text: caption,
+                parse_mode: 'HTML',
+                reply_markup: { inline_keyboard: btns }
+            });
+        } catch (e2) {}
     }
 }
 
@@ -851,8 +869,20 @@ async function handleText(chatId, from, text) {
     
     // Show result based on deposit status
     if (updated.is_registered && hasValidDeposit(updated)) {
-        // VIP access - all good
-        await sendNew(chatId, userId, t('already_registered_success', lang), vipButtons(userId, lang), 'vip');
+        // VIP access - all good, send with logo photo
+        const successText = t('already_registered_success', lang);
+        const vBtns = vipButtons(userId, lang);
+        try {
+            const res = await tgAPI('sendPhoto', {
+                chat_id: chatId,
+                photo: PRODUCTION_URL + '/logo.png',
+                caption: successText, parse_mode: 'HTML',
+                reply_markup: { inline_keyboard: vBtns }
+            });
+            if (res.ok && userId) await saveLastMsg(userId, res.result.message_id);
+        } catch (e) {
+            await sendNew(chatId, userId, successText, vBtns, 'vip');
+        }
     } else if (updated.is_registered) {
         // Registered but need deposit
         const dep = parseFloat(updated.deposit_amount) || 0;
