@@ -584,16 +584,32 @@ async function ensureSessionsTable() {
     )`);
     // Auto-migration: colonnes manquantes
     try { await query('ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by BIGINT'); } catch(e) {}
+    // colonne pending_action pour le flow deja inscrit (plus fiable que bot_sessions)
+    try { await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS pending_action TEXT DEFAULT NULL"); } catch(e) {}
 }
 async function setTempState(tid, action) {
-    await query(`INSERT INTO bot_sessions (bot_type, admin_id, action, step, temp_data, updated_at) VALUES ('main', $1, $2, 1, '{}', NOW()) ON CONFLICT (bot_type, admin_id) DO UPDATE SET action = $2, step = 1, temp_data = '{}', updated_at = NOW()`, [tid, action]);
+    // Utilise la table users.pending_action comme sauvegarde fiable
+    try { await query("UPDATE users SET pending_action = $1, updated_at = NOW() WHERE telegram_id = $2", [action, tid]); } catch(e) {}
+    // Garde aussi bot_sessions comme backup
+    try { await query(`INSERT INTO bot_sessions (bot_type, admin_id, action, step, temp_data, updated_at) VALUES ('main', $1, $2, 1, '{}', NOW()) ON CONFLICT (bot_type, admin_id) DO UPDATE SET action = $2, step = 1, temp_data = '{}', updated_at = NOW()`, [tid, action]); } catch(e) {}
 }
 async function getTempState(tid) {
-    const r = await query("SELECT * FROM bot_sessions WHERE bot_type = 'main' AND admin_id = $1", [tid]);
-    return r[0] || null;
+    // D'abord verifier users.pending_action (plus fiable)
+    try {
+        const u = await query("SELECT pending_action FROM users WHERE telegram_id = $1", [tid]);
+        if (u.length > 0 && u[0].pending_action) {
+            return { action: u[0].pending_action };
+        }
+    } catch(e) {}
+    // Fallback sur bot_sessions
+    try {
+        const r = await query("SELECT * FROM bot_sessions WHERE bot_type = 'main' AND admin_id = $1", [tid]);
+        return r[0] || null;
+    } catch(e) { return null; }
 }
 async function clearTempState(tid) {
-    await query("DELETE FROM bot_sessions WHERE bot_type = 'main' AND admin_id = $1", [tid]);
+    try { await query("UPDATE users SET pending_action = NULL, updated_at = NOW() WHERE telegram_id = $1", [tid]); } catch(e) {}
+    try { await query("DELETE FROM bot_sessions WHERE bot_type = 'main' AND admin_id = $1", [tid]); } catch(e) {}
 }
 
 // ─── Channel verification ───
