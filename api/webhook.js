@@ -770,13 +770,14 @@ async function handleText(chatId, from, text) {
         }
 
         const u = found[0];
+
+        // TAKEOVER: If 1Win ID is linked to another Telegram user, clear their association first
         if (u.telegram_id && String(u.telegram_id) !== String(from.id)) {
-            // Already linked to another Telegram
-            await sendNew(chatId, from.id, t('already_registered_already', lang), [backButton(lang)]);
-            return;
+            console.log('[TAKEOVER] User', from.id, 'taking over 1Win ID', winId, 'from user', u.telegram_id);
+            await query(`UPDATE users SET one_win_user_id = NULL, is_registered = FALSE, is_deposited = FALSE, deposit_amount = 0, registered_at = NULL, deposited_at = NULL, updated_at = NOW() WHERE telegram_id = $1`, [u.telegram_id]);
         }
 
-        // Merge: copy all data from the orphan row to the Telegram user's row
+        // Copy all data from the found row to the current Telegram user's row
         const botUser = await getUser(from.id);
         await query(`UPDATE users SET one_win_user_id = $1, is_registered = TRUE, is_deposited = $2, deposit_amount = $3,
             registered_at = CASE WHEN registered_at IS NULL THEN $4 ELSE registered_at END,
