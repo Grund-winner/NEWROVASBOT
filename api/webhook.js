@@ -752,32 +752,55 @@ async function sendVIPMessage(chatId, userId, lang, msgId) {
 // ═══════════════════════════════════════════════════════
 
 async function handleText(chatId, from, text) {
-    const session = await getTempState(from.id);
-    if (session && session.action === 'already_registered') {
-        const winId = text.trim();
-        await clearTempState(from.id);
-        const user = await getUser(from.id);
-        const lang = user.language || 'fr';
-
-        // Check if this 1Win ID exists in deposits/users
-        const found = await query('SELECT * FROM users WHERE one_win_user_id = $1', [winId]);
-
-        if (found.length === 0) {
-            // ID not found in DB
-            await sendNew(chatId, from.id, t('already_registered_notfound', lang),
-                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)]);
-            return;
-        }
-
-        const u = found[0];
-
-        // TAKEOVER: If 1Win ID is linked to another Telegram user, clear their association first
-        if (u.telegram_id && String(u.telegram_id) !== String(from.id)) {
-            console.log('[TAKEOVER] User', from.id, 'taking over 1Win ID', winId, 'from user', u.telegram_id);
+    let session = null;
+    try { session = await getTempState(from.id); } catch (e) { console.log('[HANDLE_TEXT] getTempState error:', e.message); }
+    
+    if (!session || session.action !== 'already_registered') return;
+    
+    const winId = text.trim();
+    
+    // Clear temp state immediately
+    try { await clearTempState(from.id); } catch (e) {}
+    
+    const user = await getUser(from.id);
+    const lang = user ? (user.language || 'fr') : 'fr';
+    
+    // Check if this 1Win ID exists in DB
+    let found = [];
+    try { found = await query('SELECT * FROM users WHERE one_win_user_id = $1', [winId]); } catch (e) {
+        console.log('[HANDLE_TEXT] DB error:', e.message);
+        await tgAPI('sendMessage', { chat_id: chatId, text: 'Erreur serveur. Reessayez.', parse_mode: 'HTML' });
+        return;
+    }
+    
+    if (found.length === 0) {
+        // ID not found - tell user to register with ROVAS promo code
+        await tgAPI('sendMessage', {
+            chat_id: chatId,
+            text: t('already_registered_notfound', lang),
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: t('btn_register_now', lang), url: regLink(from.id) }],
+                    [{ text: t('btn_back', lang), callback_data: 'back' }]
+                ]
+            }
+        });
+        return;
+    }
+    
+    const u = found[0];
+    
+    // TAKEOVER: If this 1Win ID is already linked to ANOTHER Telegram user, clear their association
+    if (u.telegram_id && String(u.telegram_id) !== String(from.id)) {
+        console.log('[TAKEOVER] User', from.id, 'taking over 1Win ID', winId, 'from user', u.telegram_id);
+        try {
             await query(`UPDATE users SET one_win_user_id = NULL, is_registered = FALSE, is_deposited = FALSE, deposit_amount = 0, registered_at = NULL, deposited_at = NULL, updated_at = NOW() WHERE telegram_id = $1`, [u.telegram_id]);
-        }
-
-        // Copy all data from the found row to the current Telegram user's row
+        } catch (e) { console.log('[TAKEOVER] Error clearing old user:', e.message); }
+    }
+    
+    // Link the 1Win ID to the CURRENT Telegram user
+    try {
         const botUser = await getUser(from.id);
         await query(`UPDATE users SET one_win_user_id = $1, is_registered = TRUE, is_deposited = $2, deposit_amount = $3,
             registered_at = CASE WHEN registered_at IS NULL THEN $4 ELSE registered_at END,
@@ -786,37 +809,63 @@ async function handleText(chatId, from, text) {
             updated_at = NOW() WHERE telegram_id = $7`,
             [winId, !!u.is_deposited, u.deposit_amount || 0, u.registered_at, u.deposited_at,
              u.referred_by || (botUser ? botUser.referred_by : null), from.id]);
-
-        // Delete the orphan row (the one with one_win_user_id but no telegram_id)
-        if (!u.telegram_id) {
-            await query('DELETE FROM users WHERE one_win_user_id = $1 AND telegram_id IS NULL', [winId]);
-        }
-
-        const updated = await getUser(from.id);
-
-        if (updated.is_registered && hasValidDeposit(updated)) {
-            // All good - VIP access
-            await sendNew(chatId, from.id, t('already_registered_success', lang), vipButtons(from.id, lang));
-        } else if (updated.is_registered) {
-            // Registered but no deposit or insufficient
-            const dep = parseFloat(updated.deposit_amount) || 0;
-            if (dep > 0 && dep < MIN_DEPOSIT) {
-                const remaining = (MIN_DEPOSIT - dep).toFixed(2);
-                const l = LANGS[lang] || LANGS.fr;
-                const local = Math.ceil(parseFloat(remaining) * l.rate);
-                const msg = t('already_registered_success', lang) + '\n\n' +
-                    t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
-                    t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
-                await sendNew(chatId, from.id, msg,
-                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)]);
-            } else {
-                await sendNew(chatId, from.id, t('already_registered_success', lang) + '\n\n' + t('deposit', lang),
-                    [[{ text: t('btn_deposit', lang), url: depLink(from.id) }], backButton(lang)]);
-            }
+    } catch (e) {
+        console.log('[HANDLE_TEXT] Error linking ID:', e.message);
+        await tgAPI('sendMessage', { chat_id: chatId, text: 'Erreur serveur. Reessayez.', parse_mode: 'HTML' });
+        return;
+    }
+    
+    // Delete orphan row if it had no telegram_id
+    if (!u.telegram_id) {
+        try { await query('DELETE FROM users WHERE one_win_user_id = $1 AND telegram_id IS NULL', [winId]); } catch (e) {}
+    }
+    
+    const updated = await getUser(from.id);
+    
+    // Show result based on deposit status
+    if (updated.is_registered && hasValidDeposit(updated)) {
+        // VIP access - all good
+        await tgAPI('sendMessage', {
+            chat_id: chatId,
+            text: t('already_registered_success', lang),
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: vipButtons(from.id, lang) }
+        });
+    } else if (updated.is_registered) {
+        // Registered but need deposit
+        const dep = parseFloat(updated.deposit_amount) || 0;
+        let msg;
+        if (dep > 0 && dep < MIN_DEPOSIT) {
+            const remaining = (MIN_DEPOSIT - dep).toFixed(2);
+            const l = LANGS[lang] || LANGS.fr;
+            const local = Math.ceil(parseFloat(remaining) * l.rate);
+            msg = t('already_registered_success', lang) + '\n\n' +
+                t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
+                t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
         } else {
-            await sendNew(chatId, from.id, t('register', lang),
-                [[{ text: t('btn_register_now', lang), url: regLink(from.id) }], backButton(lang)]);
+            msg = t('already_registered_success', lang) + '\n\n' + t('deposit', lang);
         }
+        await tgAPI('sendMessage', {
+            chat_id: chatId, text: msg, parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: t('btn_deposit', lang), url: depLink(from.id) }],
+                    [{ text: t('btn_back', lang), callback_data: 'back' }]
+                ]
+            }
+        });
+    } else {
+        await tgAPI('sendMessage', {
+            chat_id: chatId,
+            text: t('register', lang),
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: t('btn_register_now', lang), url: regLink(from.id) }],
+                    [{ text: t('btn_back', lang), callback_data: 'back' }]
+                ]
+            }
+        });
     }
 }
 
@@ -953,12 +1002,29 @@ async function handleUpdate(update) {
                 return;
             }
 
-            // ─── ALREADY REGISTERED ───
+            // ─── DEJA INSCRIT (Already registered) ───
             if (data === 'already_registered') {
-                await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
-                await setTempState(userId, 'already_registered');
-                await deleteMsg(chatId, msgId);
-                await sendNew(chatId, userId, t('already_registered', lang), [backButton(lang)]);
+                try {
+                    await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
+                } catch (e) {}
+                // Save temp state so handleText knows to process next text input
+                try { await setTempState(userId, 'already_registered'); } catch (e) {}
+                // Delete current message
+                try { await deleteMsg(chatId, msgId); } catch (e) {}
+                // Send message asking for 1Win ID
+                const askText = t('already_registered', lang);
+                const askBtns = [{ text: t('btn_back', lang), callback_data: 'back' }];
+                let sent = false;
+                try {
+                    const res = await tgAPI('sendMessage', {
+                        chat_id: chatId, text: askText, parse_mode: 'HTML',
+                        reply_markup: { inline_keyboard: [askBtns] }
+                    });
+                    if (res && res.ok) {
+                        sent = true;
+                        await saveLastMsg(userId, res.result.message_id);
+                    }
+                } catch (e) {}
                 return;
             }
 
