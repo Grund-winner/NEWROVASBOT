@@ -176,6 +176,37 @@ module.exports = async function handler(req, res) {
         }
 
         // ═══════════════════════════════════════════════════
+        // INIT STATS TABLES (create/recreate daily_stats + games)
+        // ═══════════════════════════════════════════════════
+        if (action === 'init_stats_tables') {
+            try { await query('DROP TABLE IF EXISTS daily_stats_games CASCADE'); } catch(e) {}
+            try { await query('DROP TABLE IF EXISTS daily_stats CASCADE'); } catch(e) {}
+            await query(`CREATE TABLE daily_stats (
+                id SERIAL PRIMARY KEY,
+                stat_date DATE NOT NULL UNIQUE,
+                total_players INTEGER DEFAULT 0,
+                total_bets NUMERIC DEFAULT 0,
+                total_winnings NUMERIC DEFAULT 0,
+                top_game_slug TEXT,
+                top_game_name TEXT,
+                top_game_players INTEGER DEFAULT 0,
+                top_game_winnings NUMERIC DEFAULT 0,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )`);
+            await query(`CREATE TABLE daily_stats_games (
+                id SERIAL PRIMARY KEY,
+                stat_id INTEGER NOT NULL REFERENCES daily_stats(id) ON DELETE CASCADE,
+                game_slug TEXT NOT NULL,
+                game_name TEXT,
+                players INTEGER DEFAULT 0,
+                winnings NUMERIC DEFAULT 0,
+                sort_order INTEGER DEFAULT 0,
+                UNIQUE(stat_id, game_slug)
+            )`);
+            return res.status(200).json({ success: true, message: 'daily_stats tables created successfully' });
+        }
+
+        // ═══════════════════════════════════════════════════
         // NEW GAMING ENDPOINTS
         // ═══════════════════════════════════════════════════
 
