@@ -374,7 +374,7 @@ T.pt = {
 // ─── Channel photo: Telegram downloads from URL, file_id cached for speed ───
 let _channelPhotoFileId = null;
 
-async function sendChannelPhoto(chatId, userId, caption, btns) {
+async function sendPhotoMsg(chatId, userId, caption, btns) {
     // Delete previous message if any
     const user = userId ? await getUser(userId) : null;
     if (user && user.last_message_id) {
@@ -392,26 +392,25 @@ async function sendChannelPhoto(chatId, userId, caption, btns) {
                 if (userId) await saveLastMsg(userId, res.result.message_id);
                 return res;
             }
-        } catch (e) { console.log('[CHANNEL PHOTO] file_id expired, using URL'); }
+        } catch (e) { console.log('[PHOTO] file_id expired, using URL'); }
     }
-    // Telegram downloads image from URL — no buffer/fs/form-data needed
+    // Telegram downloads image from URL
     try {
         const res = await tgAPI('sendPhoto', {
             chat_id: chatId,
-            photo: BASE_URL + '/identite_visuel.png',
+            photo: BASE_URL + '/joinch.png',
             caption, parse_mode: 'HTML',
             reply_markup: { inline_keyboard: btns }
         });
         if (res.ok && res.result && res.result.photo) {
-            // Cache the largest file_id for future calls
             const photos = res.result.photo;
             _channelPhotoFileId = photos[photos.length - 1].file_id;
-            console.log('[CHANNEL PHOTO] Cached file_id:', _channelPhotoFileId.substring(0, 30) + '...');
+            console.log('[PHOTO] Cached file_id:', _channelPhotoFileId.substring(0, 30) + '...');
             if (userId) await saveLastMsg(userId, res.result.message_id);
         }
         return res;
     } catch (e) {
-        console.error('[CHANNEL PHOTO URL ERROR]', e.message);
+        console.error('[PHOTO URL ERROR]', e.message);
         return { ok: false };
     }
 }
@@ -570,6 +569,8 @@ async function ensureSessionsTable() {
         updated_at TIMESTAMPTZ DEFAULT NOW(),
         PRIMARY KEY (bot_type, admin_id)
     )`);
+    // Auto-migration: colonnes manquantes
+    try { await query('ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by BIGINT'); } catch(e) {}
 }
 async function setTempState(tid, action) {
     await query(`INSERT INTO bot_sessions (bot_type, admin_id, action, step, temp_data, updated_at) VALUES ('main', $1, $2, 1, '{}', NOW()) ON CONFLICT (bot_type, admin_id) DO UPDATE SET action = $2, step = 1, temp_data = '{}', updated_at = NOW()`, [tid, action]);
@@ -637,6 +638,15 @@ function menuButtons(lang) {
     ];
 }
 
+// Menu simplifie sans Guide
+function simpleMenuButtons(lang) {
+    return [
+        [{ text: t('btn_register', lang), callback_data: 'register' }, { text: t('btn_already', lang), callback_data: 'already_registered' }],
+        [{ text: t('btn_change_language', lang), callback_data: 'change_language' }],
+        [{ text: t('btn_predictions', lang), callback_data: 'predictions' }]
+    ];
+}
+
 function backButton(lang) {
     return [{ text: t('btn_back', lang), callback_data: 'back' }];
 }
@@ -671,20 +681,32 @@ async function showChannelRequired(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
     const caption = t('channel_required', lang);
     const btns = channelButtons(lang);
+    // Envoi avec photo joinch.png
     try {
-        const result = await sendChannelPhoto(chatId, userId, caption, btns);
+        const result = await sendPhotoMsg(chatId, userId, caption, btns);
         if (result && result.ok) return;
         console.log('[CHANNEL] Photo send failed, falling back to text');
     } catch (e) {
         console.error('[CHANNEL PHOTO ERROR]', e.message);
     }
-    // Fallback: text-only message (always works)
+    // Fallback: text-only
     await sendNew(chatId, userId, caption, btns);
 }
 
 async function showMainMenu(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
-    await sendNew(chatId, userId, t('welcome', lang), menuButtons(lang));
+    const caption = 'Menu';
+    const btns = simpleMenuButtons(lang);
+    // Envoi avec meme photo joinch.png
+    try {
+        const result = await sendPhotoMsg(chatId, userId, caption, btns);
+        if (result && result.ok) return;
+        console.log('[MENU] Photo send failed, falling back to text');
+    } catch (e) {
+        console.error('[MENU PHOTO ERROR]', e.message);
+    }
+    // Fallback: text-only
+    await sendNew(chatId, userId, caption, btns);
 }
 
 async function sendVIPMessage(chatId, userId, lang, msgId) {
@@ -809,24 +831,9 @@ async function handleUpdate(update) {
                 }
             }
 
-            // If user has a language set, check channel
-            if (user.language) {
-                const member = await isChannelMember(from.id);
-                if (!member) {
-                    await showChannelRequired(chatId, from.id, user.language, null);
-                } else {
-                    await countReferralIfNeeded(from.id);
-                    if (user.is_registered && hasValidDeposit(user)) {
-                        await sendNew(chatId, from.id, t('access_granted', user.language), vipButtons(from.id, user.language));
-                    } else {
-                        await showMainMenu(chatId, from.id, user.language, null);
-                    }
-                }
-            } else {
-                // New user - show language selection FIRST
-                console.log('[START] No language set, showing language selection for', from.id);
-                await showLanguageSelection(chatId, from.id, null);
-            }
+            // TOUJOURS montrer la selection de langue en premier (nouveau ou existant)
+            console.log('[START] Showing language selection for', from.id);
+            await showLanguageSelection(chatId, from.id, null);
             return;
         }
 
