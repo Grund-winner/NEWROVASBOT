@@ -337,27 +337,51 @@ module.exports = async function handler(req, res) {
             const isDeposited = body.is_deposited === true || body.is_deposited === 'true';
             const lang = body.language || 'fr';
 
-            if (!tid || tid.length < 5) return res.status(400).json({ error: 'ID Telegram invalide' });
+            // Au moins l'ID 1Win OU l'ID Telegram est requis
+            if (!winId && !tid) return res.status(400).json({ error: 'Entrez au moins un ID 1Win ou ID Telegram' });
+            // Si Telegram ID fourni, vérifier le format
+            if (tid && tid.length < 5) return res.status(400).json({ error: 'ID Telegram invalide (min 5 chiffres)' });
 
-            const existing = await query('SELECT * FROM users WHERE telegram_id = $1', [tid]);
-            if (existing.length > 0) {
-                await query(
-                    'UPDATE users SET is_registered = $1, is_deposited = $2, language = $3, updated_at = NOW() WHERE telegram_id = $4',
-                    [isRegistered, isDeposited, lang, tid]
-                );
-                if (winId) await query('UPDATE users SET one_win_user_id = $1 WHERE telegram_id = $2', [winId, tid]);
-                return res.status(200).json({ success: true, action: 'updated', telegram_id: tid });
+            // Chercher utilisateur existant par Telegram ID ou par 1Win ID
+            let existing = null;
+            if (tid) {
+                existing = await query('SELECT * FROM users WHERE telegram_id = $1', [tid]);
+            }
+            if (!existing || existing.length === 0) {
+                if (winId) {
+                    existing = await query('SELECT * FROM users WHERE one_win_user_id = $1', [winId]);
+                }
+            }
+            if (existing && existing.length > 0) {
+                const u = existing[0];
+                const updates = [];
+                const params = [];
+                params.push(isRegistered);
+                updates.push('is_registered = $1');
+                params.push(isDeposited);
+                updates.push('is_deposited = $2');
+                if (lang) { params.push(lang); updates.push('language = $' + params.length); }
+                if (tid && !u.telegram_id) { params.push(tid); updates.push('telegram_id = $' + params.length); }
+                if (winId) { params.push(winId); updates.push('one_win_user_id = $' + params.length); }
+                updates.push('updated_at = NOW()');
+                params.push(u.telegram_id || u.one_win_user_id);
+                updates.push('WHERE telegram_id = $' + params.length + ' OR one_win_user_id = $' + params.length);
+                await query('UPDATE users SET ' + updates.join(', ') + ' RETURNING *', params);
+                return res.status(200).json({ success: true, action: 'updated', telegram_id: tid || u.telegram_id, one_win_id: winId || u.one_win_user_id });
             }
 
+            // Nouvel utilisateur
             let name = 'Inconnu';
-            const ci = await getChatInfo(tid);
-            if (ci) name = [ci.first_name, ci.last_name].filter(Boolean).join(' ') || 'Inconnu';
+            if (tid) {
+                const ci = await getChatInfo(tid);
+                if (ci) name = [ci.first_name, ci.last_name].filter(Boolean).join(' ') || 'Inconnu';
+            }
 
             await query(
                 'INSERT INTO users (telegram_id, first_name, one_win_user_id, is_registered, is_deposited, language, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())',
-                [tid, name, winId || null, isRegistered, isDeposited, lang]
+                [tid || null, name, winId || null, isRegistered, isDeposited, lang]
             );
-            return res.status(200).json({ success: true, action: 'created', telegram_id: tid, name });
+            return res.status(200).json({ success: true, action: 'created', telegram_id: tid || null, one_win_id: winId, name });
         }
 
         // ─── EDIT USER (Enhanced with deposit_amount) ───
