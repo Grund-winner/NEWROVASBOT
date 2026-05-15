@@ -689,7 +689,7 @@ function channelButtons(lang) {
 
 function vipButtons(userId, lang) {
     const token = generateToken(userId);
-    const webAppUrl = `${BASE_URL}/api/claim?token=${token}`;
+    const webAppUrl = `${BASE_URL}/api/claim?token=${token}&lang=${lang}`;
     return [
         [{ text: t('btn_predictions', lang), web_app: { url: webAppUrl } }],
         [{ text: t('btn_back', lang), callback_data: 'back' }]
