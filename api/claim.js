@@ -11,6 +11,13 @@ const SITE_URL = 'https://newrovasbot.vercel.app';
 const VALID_LANGS = ['fr','en','hi','uz','es','az','tr','ar','ru','pt'];
 
 module.exports = async function handler(req, res) {
+    // Prevent ALL caching (Vercel CDN, browser, proxies)
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    res.setHeader('X-Vercel-Cache', 'MISS');
+
     try {
         const token = req.query.token;
 
@@ -44,32 +51,38 @@ module.exports = async function handler(req, res) {
             return serveRedirect(res, '/jeux/index.html', 'fr');
         }
 
-        // Determine language: priority = URL param > DB > fallback 'fr'
+        // Determine language: try BOTH DB and URL param, prefer DB (most current)
         let userLang = 'fr';
+        let langSource = 'default';
 
-        // 1) Read lang from URL params (passed by vipButtons)
-        const urlLang = (req.query.lang || '').toLowerCase();
-        if (urlLang && VALID_LANGS.indexOf(urlLang) !== -1) {
-            userLang = urlLang;
-            console.log('[CLAIM] User', telegramId, 'lang from URL param:', userLang);
-        } else {
-            // 2) Fallback: read from DB
-            try {
-                const users = await query('SELECT language FROM users WHERE telegram_id = $1', [parseInt(telegramId)]);
-                if (users.length > 0 && users[0].language) {
-                    const dbLang = users[0].language.toLowerCase();
-                    if (VALID_LANGS.indexOf(dbLang) !== -1) {
-                        userLang = dbLang;
-                    }
+        // 1) Try DB first (always has the most current language)
+        try {
+            const users = await query('SELECT language FROM users WHERE telegram_id = $1', [parseInt(telegramId)]);
+            if (users.length > 0 && users[0].language) {
+                const dbLang = users[0].language.toLowerCase().trim();
+                if (VALID_LANGS.indexOf(dbLang) !== -1) {
+                    userLang = dbLang;
+                    langSource = 'DB';
                 }
-                console.log('[CLAIM] User', telegramId, 'lang from DB:', users.length > 0 ? users[0].language : 'NOT FOUND', '→ using:', userLang);
-            } catch (e) {
-                console.warn('[CLAIM] DB lookup failed:', e.message);
             }
+            console.log('[CLAIM] User', telegramId, 'DB lang:', users.length > 0 ? (users[0].language || 'NULL') : 'NOT FOUND');
+        } catch (e) {
+            console.warn('[CLAIM] DB lookup failed:', e.message);
         }
 
+        // 2) Also check URL param (passed by vipButtons as backup)
+        const urlLang = (req.query.lang || '').toLowerCase().trim();
+        console.log('[CLAIM] User', telegramId, 'URL lang param:', urlLang || 'NONE');
+
+        // If DB didn't give a valid language, use URL param
+        if (langSource === 'default' && urlLang && VALID_LANGS.indexOf(urlLang) !== -1) {
+            userLang = urlLang;
+            langSource = 'URL';
+        }
+
+        console.log('[CLAIM] User', telegramId, 'final lang=' + userLang + ' (source: ' + langSource + ')');
+
         const predTarget = `/jeux/index.html?uid=${telegramId}&lang=${userLang}`;
-        console.log('[CLAIM] Redirecting user', telegramId, 'lang=' + userLang);
         return serveRedirect(res, predTarget, userLang);
     } catch (error) {
         console.error('[CLAIM ERROR]', error);
@@ -81,7 +94,8 @@ module.exports = async function handler(req, res) {
 // This avoids WebView caching issues with 302 redirects
 function serveRedirect(res, targetPath, lang) {
     const sep = targetPath.indexOf('?') !== -1 ? '&' : '?';
-    const fullUrl = SITE_URL + targetPath + sep + '_t=' + Date.now();
+    const ts = Date.now();
+    const fullUrl = SITE_URL + targetPath + sep + '_t=' + ts;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -90,9 +104,10 @@ function serveRedirect(res, targetPath, lang) {
 try{sessionStorage.setItem('rovas_lang','${lang}');localStorage.setItem('rovas_lang','${lang}');}catch(e){}
 window.location.replace('${fullUrl}');
 </script></body></html>`;
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
     res.setHeader('Content-Type', 'text/html');
     res.status(200).send(html);
 }
