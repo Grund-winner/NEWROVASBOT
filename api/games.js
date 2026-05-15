@@ -36,15 +36,20 @@ async function ensureColumns() {
             created_at TIMESTAMPTZ DEFAULT NOW()
         )`);
         // Add missing columns if table was created with old schema
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_players INTEGER DEFAULT 0`); } catch(e) {}
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_bets NUMERIC DEFAULT 0`); } catch(e) {}
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_winnings NUMERIC DEFAULT 0`); } catch(e) {}
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_slug TEXT`); } catch(e) {}
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_name TEXT`); } catch(e) {}
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_players INTEGER DEFAULT 0`); } catch(e) {}
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_winnings NUMERIC DEFAULT 0`); } catch(e) {}
-        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS stat_date DATE`); } catch(e) {}
-    } catch (e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_players INTEGER DEFAULT 0`); } catch(e) { console.log('[MIGRATE] total_players:', e.message); }
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_bets NUMERIC DEFAULT 0`); } catch(e) { console.log('[MIGRATE] total_bets:', e.message); }
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_winnings NUMERIC DEFAULT 0`); } catch(e) { console.log('[MIGRATE] total_winnings:', e.message); }
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_slug TEXT`); } catch(e) { console.log('[MIGRATE] top_game_slug:', e.message); }
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_name TEXT`); } catch(e) { console.log('[MIGRATE] top_game_name:', e.message); }
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_players INTEGER DEFAULT 0`); } catch(e) { console.log('[MIGRATE] top_game_players:', e.message); }
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_winnings NUMERIC DEFAULT 0`); } catch(e) { console.log('[MIGRATE] top_game_winnings:', e.message); }
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS stat_date DATE`); } catch(e) { console.log('[MIGRATE] stat_date:', e.message); }
+        // Diagnose: show actual columns
+        try {
+            var cols = await query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'daily_stats' ORDER BY ordinal_position");
+            console.log('[MIGRATE] daily_stats columns:', JSON.stringify(cols));
+        } catch(e) { console.log('[MIGRATE] diag error:', e.message); }
+    } catch (e) { console.log('[MIGRATE] daily_stats error:', e.message); }
     // Ensure daily_stats_games table exists for top 10 games per stat
     try {
         await query(`CREATE TABLE IF NOT EXISTS daily_stats_games (
