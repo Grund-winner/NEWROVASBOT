@@ -750,7 +750,7 @@ async function showMainMenu(chatId, userId, lang, msgId) {
 async function sendVIPMessage(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
     try {
-        await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang));
+        await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang), 'vip');
     } catch (e) {
         console.error('[VIP MSG ERROR]', e.message);
         // Ultimate fallback: send simple message
@@ -852,7 +852,7 @@ async function handleText(chatId, from, text) {
     // Show result based on deposit status
     if (updated.is_registered && hasValidDeposit(updated)) {
         // VIP access - all good
-        await sendNew(chatId, userId, t('already_registered_success', lang), vipButtons(userId, lang));
+        await sendNew(chatId, userId, t('already_registered_success', lang), vipButtons(userId, lang), 'vip');
     } else if (updated.is_registered) {
         // Registered but need deposit
         const dep = parseFloat(updated.deposit_amount) || 0;

@@ -9,22 +9,27 @@ const { query } = require('../lib/db');
 const LINK_SECRET = process.env.LINK_SECRET || process.env.ADMIN_PASSWORD || '';
 
 function htmlRedirect(url) {
+    // Cache-bust to prevent Telegram in-app browser from serving cached pages
+    const bust = '_t=' + Date.now();
+    const sep = url.indexOf('?') !== -1 ? '&' : '?';
+    const finalUrl = url + sep + bust;
     return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="data:,">
-<script>window.location.replace("${url}");</script>
-<meta http-equiv="refresh" content="0;url=${url}">
-</head><body><p>Redirection...</p><script>window.location.replace("${url}");</script></body></html>`;
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>window.location.replace("${finalUrl}");</script>
+<meta http-equiv="refresh" content="0;url=${finalUrl}">
+</head><body><p>Redirection...</p><script>window.location.replace("${finalUrl}");</script></body></html>`;
 }
 
 module.exports = async function handler(req, res) {
     try {
         const token = req.query.token;
-        // Always use relative paths - claim.js runs on Vercel, so redirect stays on Vercel
-        // No external PREDICTION_URL needed
 
         // No token → redirect to games without uid (public view)
         if (!token) {
             res.setHeader('Content-Type', 'text/html');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
@@ -33,12 +38,14 @@ module.exports = async function handler(req, res) {
             decoded = Buffer.from(token, 'base64url').toString('utf8');
         } catch (e) {
             res.setHeader('Content-Type', 'text/html');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
         const parts = decoded.split(':');
         if (parts.length !== 3) {
             res.setHeader('Content-Type', 'text/html');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
@@ -53,6 +60,7 @@ module.exports = async function handler(req, res) {
         if (sig !== expectedSig) {
             console.warn('[CLAIM] Invalid token for user', telegramId);
             res.setHeader('Content-Type', 'text/html');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
@@ -66,12 +74,14 @@ module.exports = async function handler(req, res) {
         }
 
         const predTarget = `/jeux/index.html?uid=${telegramId}&lang=${userLang}`;
-        console.log('[CLAIM] Redirecting user', telegramId, 'to games');
+        console.log('[CLAIM] Redirecting user', telegramId, 'lang=' + userLang, 'to games');
         res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         return res.status(200).send(htmlRedirect(predTarget));
     } catch (error) {
         console.error('[CLAIM ERROR]', error);
         res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         return res.status(200).send(htmlRedirect('/jeux/index.html'));
     }
 };
