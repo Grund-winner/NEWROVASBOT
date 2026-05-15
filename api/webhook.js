@@ -375,11 +375,13 @@ T.pt = {
 // ─── Channel photo: Telegram downloads from URL, file_id cached for speed ───
 let _channelPhotoFileId = null;
 
-async function sendPhotoMsg(chatId, userId, caption, btns) {
-    // Delete previous message if any
-    const user = userId ? await getUser(userId) : null;
-    if (user && user.last_message_id) {
-        await deleteMsg(chatId, user.last_message_id);
+async function sendPhotoMsg(chatId, userId, caption, btns, skipDelete) {
+    // Delete previous message if any (skip if caller already deleted)
+    if (!skipDelete) {
+        const user = userId ? await getUser(userId) : null;
+        if (user && user.last_message_id) {
+            await deleteMsg(chatId, user.last_message_id);
+        }
     }
     // Use cached file_id (fast, no re-upload)
     if (_channelPhotoFileId) {
@@ -684,35 +686,54 @@ async function showChannelRequired(chatId, userId, lang, msgId) {
     const btns = channelButtons(lang);
     // Envoi avec photo joinch.png
     try {
-        const result = await sendPhotoMsg(chatId, userId, caption, btns);
+        const result = await sendPhotoMsg(chatId, userId, caption, btns, true);
         if (result && result.ok) return;
         console.log('[CHANNEL] Photo send failed, falling back to text');
     } catch (e) {
         console.error('[CHANNEL PHOTO ERROR]', e.message);
     }
     // Fallback: text-only
-    await sendNew(chatId, userId, caption, btns);
+    try {
+        await sendNew(chatId, userId, caption, btns);
+    } catch (e) {
+        console.error('[CHANNEL TEXT FALLBACK ERROR]', e.message);
+    }
 }
 
 async function showMainMenu(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
-    const caption = 'Menu';
+    const caption = t('welcome', lang);
     const btns = simpleMenuButtons(lang);
     // Envoi avec meme photo joinch.png
     try {
-        const result = await sendPhotoMsg(chatId, userId, caption, btns);
+        const result = await sendPhotoMsg(chatId, userId, caption, btns, true);
         if (result && result.ok) return;
         console.log('[MENU] Photo send failed, falling back to text');
     } catch (e) {
         console.error('[MENU PHOTO ERROR]', e.message);
     }
     // Fallback: text-only
-    await sendNew(chatId, userId, caption, btns);
+    try {
+        await sendNew(chatId, userId, caption, btns);
+    } catch (e) {
+        console.error('[MENU TEXT FALLBACK ERROR]', e.message);
+    }
 }
 
 async function sendVIPMessage(chatId, userId, lang, msgId) {
     if (msgId) await deleteMsg(chatId, msgId);
-    await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang));
+    try {
+        await sendNew(chatId, userId, t('access_granted', lang), vipButtons(userId, lang));
+    } catch (e) {
+        console.error('[VIP MSG ERROR]', e.message);
+        // Ultimate fallback: send simple message
+        await tgAPI('sendMessage', {
+            chat_id: chatId,
+            text: t('access_granted', lang),
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: vipButtons(userId, lang) }
+        });
+    }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -966,10 +987,22 @@ async function handleUpdate(update) {
                 await clearTempState(userId);
                 // Refresh user data
                 user = await getUser(userId);
-                if (user.is_registered && hasValidDeposit(user)) {
+                try {
                     await showMainMenu(chatId, userId, lang, msgId);
-                } else {
-                    await showMainMenu(chatId, userId, lang, msgId);
+                } catch (e) {
+                    console.error('[BACK ERROR]', e.message);
+                    // Ultimate fallback: ensure user always sees the menu
+                    try {
+                        await sendNew(chatId, userId, t('welcome', lang), simpleMenuButtons(lang));
+                    } catch (e2) {
+                        console.error('[BACK FALLBACK ERROR]', e2.message);
+                        await tgAPI('sendMessage', {
+                            chat_id: chatId,
+                            text: t('welcome', lang),
+                            parse_mode: 'HTML',
+                            reply_markup: { inline_keyboard: simpleMenuButtons(lang) }
+                        });
+                    }
                 }
                 return;
             }
