@@ -35,6 +35,15 @@ async function ensureColumns() {
             top_game_winnings NUMERIC DEFAULT 0,
             created_at TIMESTAMPTZ DEFAULT NOW()
         )`);
+        // Add missing columns if table was created with old schema
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_players INTEGER DEFAULT 0`); } catch(e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_bets NUMERIC DEFAULT 0`); } catch(e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS total_winnings NUMERIC DEFAULT 0`); } catch(e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_slug TEXT`); } catch(e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_name TEXT`); } catch(e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_players INTEGER DEFAULT 0`); } catch(e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS top_game_winnings NUMERIC DEFAULT 0`); } catch(e) {}
+        try { await query(`ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS stat_date DATE`); } catch(e) {}
     } catch (e) {}
     // Ensure daily_stats_games table exists for top 10 games per stat
     try {
