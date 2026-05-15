@@ -76,7 +76,8 @@ T.fr = {
     btn_change_language: `\uD83C\uDF10 Modifier la langue`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 Depot necessaire</b>\n\nUn depot minimum de ${depositStr('fr')} est requis pour acceder aux predictions.`,
     missing: `<b>\uD83D\uDCE1 Il manque <b>{remaining}$</b> ({local})</b>\n\nCompletez votre depot pour debloquer l'acces.`,
-    channel_required_alert: `Rejoignez d'abord le canal officiel.`
+    channel_required_alert: `Rejoignez d'abord le canal officiel.`,
+    menu_text: `Menu`
 };
 
 T.en = {
@@ -108,7 +109,8 @@ T.en = {
     btn_change_language: `\uD83C\uDF10 Change language`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 Deposit required</b>\n\nA minimum deposit of ${depositStr('en')} is required to access predictions.`,
     missing: `<b>\uD83D\uDCE1 You need <b>{remaining}$</b> more ({local})</b>\n\nComplete your deposit to unlock access.`,
-    channel_required_alert: `Join the official channel first.`
+    channel_required_alert: `Join the official channel first.`,
+    menu_text: `Menu`
 };
 
 T.hi = {
@@ -140,7 +142,8 @@ T.hi = {
     btn_change_language: `\uD83C\uDF0D \u092D\u093E\u0937\u093E \u092C\u0926\u0932\u0947\u0902`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 \u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915</b>\n\n\u092A\u094D\u0930\u0947\u0921\u093F\u0915\u094D\u0936\u0928 \u0924\u0915 \u092A\u0939\u0941\u0901\u091A\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0928\u094D\u092F\u0942\u0928\u0924\u092E ${depositStr('hi')} \u091C\u092E\u093E \u0906\u0935\u0936\u094D\u092F\u0915 \u0939\u0948\u0964`,
     missing: `<b>\uD83D\uDCE1 \u0906\u092A\u0915\u094B <b>{remaining}$</b> ({local}) \u0914\u0930 \u091A\u093E\u0939\u093F\u090F</b>\n\n\u0905\u092A\u0928\u093E \u091C\u092E\u093E \u092A\u0942\u0930\u093E \u0915\u0930\u0947\u0902\u0964`,
-    channel_required_alert: `\u092A\u0939\u0932\u0947 \u0906\u0927\u093F\u0915\u093E\u0930\u093F\u0915 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964`
+    channel_required_alert: `\u092A\u0939\u0932\u0947 \u0906\u0927\u093F\u0915\u093E\u0930\u093F\u0915 \u091A\u0948\u0928\u0932 \u0938\u0947 \u091C\u0941\u0921\u093C\u0947\u0902\u0964`,
+    menu_text: `Menu`
 };
 
 T.uz = {
@@ -172,7 +175,8 @@ T.uz = {
     btn_change_language: `\uD83C\uDF0D Tilni o'zgartirish`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 To'ldirish kerak</b>\n\nTaxminlarga kirish uchun kamida ${depositStr('uz')} to'ldirish kerak.`,
     missing: `<b>\uD83D\uDCE1 Sizga yana <b>{remaining}$</b> ({local}) kerak</b>\n\nTo'lovingizni to'ldiring.`,
-    channel_required_alert: `Avval rasmiy kanalga qo'shiling.`
+    channel_required_alert: `Avval rasmiy kanalga qo'shiling.`,
+    menu_text: `Menu`
 };
 
 T.es = {
@@ -204,7 +208,8 @@ T.es = {
     btn_change_language: `\uD83C\uDF0D Cambiar idioma`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 Deposito necesario</b>\n\nSe requiere un deposito minimo de ${depositStr('es')} para acceder a las predicciones.`,
     missing: `<b>\uD83D\uDCE1 Le falta <b>{remaining}$</b> ({local})</b>\n\nComplete su deposito para desbloquear el acceso.`,
-    channel_required_alert: `Unase primero al canal oficial.`
+    channel_required_alert: `Unase primero al canal oficial.`,
+    menu_text: `Menu`
 };
 
 T.az = {
@@ -236,7 +241,8 @@ T.az = {
     btn_change_language: `\uD83C\uDF0D Dili deyisdirmek`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 Doldurma lazimdir</b>\n\nProqnozlara catmaq ucun minimum ${depositStr('az')} doldurmaq lazimdir.`,
     missing: `<b>\uD83D\uDCE1 Size heniz <b>{remaining}$</b> ({local}) lazimdir</b>\n\nOdenisinizi doldurun.`,
-    channel_required_alert: `Evvelce resmi kanala qosulun.`
+    channel_required_alert: `Evvelce resmi kanala qosulun.`,
+    menu_text: `Menu`
 };
 
 T.tr = {
@@ -268,7 +274,8 @@ T.tr = {
     btn_change_language: `\uD83C\uDF0D Dili degistir`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 Yatirim gerekiyor</b>\n\nTahminlere erismek icin minimum ${depositStr('tr')} yatirim gerekiyor.`,
     missing: `<b>\uD83D\uDCE1 Size heniz <b>{remaining}$</b> ({local}) eksik</b>\n\nYatiriminizi tamamlayin.`,
-    channel_required_alert: `Once resmi kanala katilin.`
+    channel_required_alert: `Once resmi kanala katilin.`,
+    menu_text: `Menu`
 };
 
 T.ar = {
@@ -300,7 +307,8 @@ T.ar = {
     btn_change_language: `\uD83C\uDF0D \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 \u0625\u064A\u062F\u0627\u0639 \u0645\u0637\u0644\u0648\u0628</b>\n\n\u064A\u062A\u0637\u0644\u0628 \u0625\u064A\u062F\u0627\u0639 \u062D\u062F \u0623\u062F\u0646\u0649 ${depositStr('ar')} \u0644\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0627\u0644\u062A\u0648\u0642\u0639\u0627\u062A.`,
     missing: `<b>\uD83D\uDCE1 \u064A\u0646\u0642\u0635\u0643 <b>{remaining}$</b> ({local})</b>\n\n\u0623\u0643\u0645\u0644 \u0625\u064A\u062F\u0627\u0639\u0643 \u0644\u0641\u062A\u062D \u0627\u0644\u0648\u0635\u0648\u0644.`,
-    channel_required_alert: `\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0627\u0644\u0642\u0646\u0627\u0629 \u0627\u0644\u0631\u0633\u0645\u064A\u0629 \u0623\u0648\u0644\u0627\u064B.`
+    channel_required_alert: `\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0627\u0644\u0642\u0646\u0627\u0629 \u0627\u0644\u0631\u0633\u0645\u064A\u0629 \u0623\u0648\u0644\u0627\u064B.`,
+    menu_text: `Menu`
 };
 
 T.ru = {
@@ -332,7 +340,8 @@ T.ru = {
     btn_change_language: `\uD83C\uDF0D \u0421\u043C\u0435\u043D\u0438\u0442\u044C \u044F\u0437\u044B\u043A`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 \u0414\u0435\u043F\u043E\u0437\u0438\u0442 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C</b>\n\n\u0414\u043B\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u0430 \u043A \u043F\u0440\u043E\u0433\u043D\u043E\u0437\u0430\u043C \u0442\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F \u043C\u0438\u043D\u0438\u043C\u0430\u043B\u044C\u043D\u044B\u0439 \u0434\u0435\u043F\u043E\u0437\u0438\u0442 ${depositStr('ru')}.`,
     missing: `<b>\uD83D\uDCE1 \u0412\u0430\u043C \u043D\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 <b>{remaining}$</b> ({local})</b>\n\n\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0434\u0435\u043F\u043E\u0437\u0438\u0442 \u0434\u043B\u044F \u0440\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0438 \u0434\u043E\u0441\u0442\u0443\u043F\u0430.`,
-    channel_required_alert: `\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043E\u0444\u0438\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u043A\u0430\u043D\u0430\u043B\u0443.`
+    channel_required_alert: `\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u0435\u0441\u044C \u043A \u043E\u0444\u0438\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u043A\u0430\u043D\u0430\u043B\u0443.`,
+    menu_text: `Menu`
 };
 
 T.pt = {
@@ -364,7 +373,8 @@ T.pt = {
     btn_change_language: `\uD83C\uDF0D Mudar idioma`,
     deposit_insufficient_no: `<b>\uD83D\uDCB3 Deposito necessario</b>\n\nE necessario um deposito minimo de ${depositStr('pt')} para acessar as previsoes.`,
     missing: `<b>\uD83D\uDCE1 Voce precisa de mais <b>{remaining}$</b> ({local})</b>\n\nComplete seu deposito para desbloquear o acesso.`,
-    channel_required_alert: `Junte-se ao canal oficial primeiro.`
+    channel_required_alert: `Junte-se ao canal oficial primeiro.`,
+    menu_text: `Menu`
 };
 
 
@@ -701,22 +711,31 @@ async function showChannelRequired(chatId, userId, lang, msgId) {
 }
 
 async function showMainMenu(chatId, userId, lang, msgId) {
-    if (msgId) await deleteMsg(chatId, msgId);
-    const caption = t('welcome', lang);
+    const caption = t('menu_text', lang);
     const btns = simpleMenuButtons(lang);
-    // Envoi avec meme photo joinch.png
-    try {
-        const result = await sendPhotoMsg(chatId, userId, caption, btns, true);
-        if (result && result.ok) return;
-        console.log('[MENU] Photo send failed, falling back to text');
-    } catch (e) {
-        console.error('[MENU PHOTO ERROR]', e.message);
+    // Primary: edit the message in-place (most reliable, no delete race condition)
+    if (msgId) {
+        try {
+            const res = await tgAPI('editMessageText', {
+                chat_id: chatId, message_id: msgId,
+                text: caption, parse_mode: 'HTML',
+                reply_markup: { inline_keyboard: btns }
+            });
+            if (res.ok) {
+                if (userId) await saveLastMsg(userId, msgId);
+                return;
+            }
+            console.log('[MENU] editMessageText failed:', res.description);
+        } catch (e) {
+            console.error('[MENU EDIT ERROR]', e.message);
+        }
     }
-    // Fallback: text-only
+    // Fallback: delete old message and send new text-only message
+    if (msgId) await deleteMsg(chatId, msgId);
     try {
         await sendNew(chatId, userId, caption, btns);
     } catch (e) {
-        console.error('[MENU TEXT FALLBACK ERROR]', e.message);
+        console.error('[MENU FALLBACK ERROR]', e.message);
     }
 }
 
@@ -993,12 +1012,12 @@ async function handleUpdate(update) {
                     console.error('[BACK ERROR]', e.message);
                     // Ultimate fallback: ensure user always sees the menu
                     try {
-                        await sendNew(chatId, userId, t('welcome', lang), simpleMenuButtons(lang));
+                        await sendNew(chatId, userId, t('menu_text', lang), simpleMenuButtons(lang));
                     } catch (e2) {
                         console.error('[BACK FALLBACK ERROR]', e2.message);
                         await tgAPI('sendMessage', {
                             chat_id: chatId,
-                            text: t('welcome', lang),
+                            text: t('menu_text', lang),
                             parse_mode: 'HTML',
                             reply_markup: { inline_keyboard: simpleMenuButtons(lang) }
                         });
