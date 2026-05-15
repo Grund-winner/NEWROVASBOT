@@ -69,7 +69,7 @@ body::before{
 .metric-icon.cyan{background:rgba(232,56,143,0.08);color:var(--accent)}
 .metric-icon.green{background:rgba(26,154,106,0.08);color:var(--green)}
 .metric-icon.orange{background:rgba(212,148,10,0.08);color:var(--orange)}
-.metric-value{font-size:1.15rem;font-weight:800;color:#2d0a1e;line-height:1.1}
+.metric-value{font-size:1.05rem;font-weight:800;color:#2d0a1e;line-height:1.1}
 .metric-label{font-size:.58rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
 
 /* TOP 10 GAMES */
@@ -96,24 +96,21 @@ body::before{
 .top10-stat-val{font-size:.72rem;font-weight:700;color:var(--green);line-height:1.2}
 .top10-stat-lbl{font-size:.48rem;color:var(--muted);text-transform:uppercase;letter-spacing:.2px}
 
-/* MINI CHART */
+/* LINE CHART (Canvas) */
 .chart-card{
   background:rgba(255,255,255,0.7);
   border:1px solid rgba(240,72,144,0.15);border-radius:14px;
   padding:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
 }
-.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .chart-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.chart-value{font-size:.72rem;font-weight:700;color:var(--accent)}
-.chart-bars{display:flex;align-items:flex-end;gap:4px;height:80px}
-.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
-.chart-bar{
-  width:100%;border-radius:4px 4px 2px 2px;
-  background:linear-gradient(180deg,var(--accent),var(--accent-dk));
-  min-height:4px;transition:height 1s cubic-bezier(.4,0,.2,1);
-}
-.chart-bar.empty{background:rgba(232,56,143,0.08)}
-.chart-bar-label{font-size:.52rem;color:var(--muted);font-weight:600}
+.chart-legend{display:flex;gap:12px;align-items:center}
+.chart-legend-item{display:flex;align-items:center;gap:4px;font-size:.56rem;font-weight:600;color:var(--muted)}
+.chart-legend-dot{width:8px;height:8px;border-radius:50%}
+.chart-legend-dot.bets{background:var(--orange)}
+.chart-legend-dot.wins{background:var(--green)}
+.chart-legend-dot.players{background:var(--accent)}
+canvas.line-chart{width:100%;height:180px;display:block;border-radius:8px}
 
 /* HISTORY */
 .history-item{
@@ -131,6 +128,7 @@ body::before{
 .history-val{flex:1;text-align:center;padding:4px 0;border-radius:8px;background:rgba(232,56,143,0.05)}
 .history-val-num{font-size:.72rem;font-weight:700;color:#2d0a1e;line-height:1.2}
 .history-val-num.g{color:var(--green)}
+.history-val-num.o{color:var(--orange)}
 .history-val-lbl{font-size:.48rem;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;margin-top:1px}
 .history-game{width:40px;height:40px;border-radius:10px;flex-shrink:0;object-fit:cover;border:1px solid rgba(240,72,144,0.10);background:rgba(255,255,255,0.6)}
 
@@ -153,9 +151,10 @@ html[dir="rtl"] .top10-stats{flex-direction:row-reverse}
 html[dir="rtl"] .header-left{flex-direction:row-reverse}
 
 @media(max-width:400px){
-  .metric-value{font-size:1rem}
+  .metric-value{font-size:.92rem}
   .top10-img{width:38px;height:38px}
   .history-game{width:36px;height:36px}
+  canvas.line-chart{height:150px}
 }
 </style>
 </head>
@@ -175,6 +174,7 @@ html[dir="rtl"] .header-left{flex-direction:row-reverse}
     <div class="header-date" id="headerDate">...</div>
   </div>
 
+  <!-- LATEST METRICS -->
   <div class="section anim" style="animation-delay:.06s">
     <div class="section-label" id="metricsLabel" data-i18n="stats_latest">Dernieres donnees</div>
     <div class="metrics" id="metricsRow">
@@ -202,22 +202,29 @@ html[dir="rtl"] .header-left{flex-direction:row-reverse}
     </div>
   </div>
 
+  <!-- TOP 10 GAMES -->
   <div class="section anim" style="animation-delay:.12s" id="top10Section">
     <div class="section-label" id="top10Label" data-i18n="stats_top_games">Top jeux</div>
     <div id="top10List"></div>
   </div>
 
+  <!-- LINE CHART -->
   <div class="section anim" style="animation-delay:.18s" id="chartSection">
-    <div class="section-label" id="chartLabel" data-i18n="stats_trend">Tendance gains (7j)</div>
+    <div class="section-label" id="chartLabel" data-i18n="stats_trend">Tendance (30j)</div>
     <div class="chart-card">
       <div class="chart-header">
-        <span class="chart-title" id="chartTitle" data-i18n="stats_daily_winnings">Gains quotidiens</span>
-        <span class="chart-value" id="chartAvg">...</span>
+        <span class="chart-title" id="chartTitle" data-i18n="stats_daily">Evolution quotidienne</span>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot bets"></div><span data-i18n="stats_bets">Mises</span></div>
+          <div class="chart-legend-item"><div class="chart-legend-dot wins"></div><span data-i18n="stats_winnings">Gains</span></div>
+          <div class="chart-legend-item"><div class="chart-legend-dot players"></div><span data-i18n="stats_players">Joueurs</span></div>
+        </div>
       </div>
-      <div class="chart-bars" id="chartBars"></div>
+      <canvas class="line-chart" id="lineChart"></canvas>
     </div>
   </div>
 
+  <!-- HISTORY -->
   <div class="section anim" style="animation-delay:.24s" id="historySection">
     <div class="section-label" id="historyLabel" data-i18n="stats_history">Historique</div>
     <div id="historyList"></div>
@@ -244,71 +251,71 @@ var I18N={
   fr:{
     stats_title:'Statistiques',stats_subtitle:'Performances quotidiennes',stats_latest:'Dernieres donnees',
     stats_players:'Joueurs',stats_bets:'Mises',stats_winnings:'Gains',stats_top_games:'Top jeux',
-    stats_trend:'Tendance gains (7j)',stats_daily_winnings:'Gains quotidiens',stats_avg:'Moy',
+    stats_trend:'Tendance (30j)',stats_daily:'Evolution quotidienne',stats_avg:'Moy',
     stats_history:'Historique',stats_no_data:'Aucune statistique disponible',stats_empty:'Aucun historique',
     stats_best:'Top jeu'
   },
   en:{
     stats_title:'Statistics',stats_subtitle:'Daily performance',stats_latest:'Latest data',
     stats_players:'Players',stats_bets:'Bets',stats_winnings:'Winnings',stats_top_games:'Top games',
-    stats_trend:'Winnings trend (7d)',stats_daily_winnings:'Daily winnings',stats_avg:'Avg',
+    stats_trend:'Trend (30d)',stats_daily:'Daily evolution',stats_avg:'Avg',
     stats_history:'History',stats_no_data:'No statistics available',stats_empty:'No history',
     stats_best:'Top game'
   },
   hi:{
     stats_title:'Statistics',stats_subtitle:'Daily performance',stats_latest:'Latest data',
     stats_players:'Players',stats_bets:'Bets',stats_winnings:'Winnings',stats_top_games:'Top games',
-    stats_trend:'Winnings trend (7d)',stats_daily_winnings:'Daily winnings',stats_avg:'Avg',
+    stats_trend:'Trend (30d)',stats_daily:'Daily evolution',stats_avg:'Avg',
     stats_history:'History',stats_no_data:'No statistics available',stats_empty:'No history',
     stats_best:'Top game'
   },
   uz:{
     stats_title:'Statistika',stats_subtitle:'Kunlik natijalar',stats_latest:'Oxirgi ma\'lumotlar',
     stats_players:'O\'yinchi',stats_bets:'Stavkalar',stats_winnings:'Yutuqlar',stats_top_games:'Top o\'yinlar',
-    stats_trend:'Yutuqlar tendensiyasi (7k)',stats_daily_winnings:'Kunlik yutuqlar',stats_avg:'O\'rt',
+    stats_trend:'Tendensiya (30k)',stats_daily:'Kunlik evolyutsiya',stats_avg:'O\'rt',
     stats_history:'Tarix',stats_no_data:'Statistika mavjud emas',stats_empty:'Tarix yo\'q',
     stats_best:'Top o\'yin'
   },
   es:{
     stats_title:'Estadisticas',stats_subtitle:'Rendimiento diario',stats_latest:'Ultimos datos',
     stats_players:'Jugadores',stats_bets:'Apuestas',stats_winnings:'Ganancias',stats_top_games:'Top juegos',
-    stats_trend:'Tendencia ganancias (7d)',stats_daily_winnings:'Ganancias diarias',stats_avg:'Prom',
-    stats_history:'Historial',stats_no_data:'Sin estadisticas disponibles',stats_empty:'Sin historial',
+    stats_trend:'Tendencia (30d)',stats_daily:'Evolucion diaria',stats_avg:'Prom',
+    stats_history:'Historial',stats_no_data:'Sin estadisticas',stats_empty:'Sin historial',
     stats_best:'Top juego'
   },
   az:{
     stats_title:'Statistika',stats_subtitle:'Günlük nəticələr',stats_latest:'Son məlumatlar',
     stats_players:'Oyunçu',stats_bets:'Mərclər',stats_winnings:'Qazanclar',stats_top_games:'Top oyunlar',
-    stats_trend:'Qazanc tendensiyası (7g)',stats_daily_winnings:'Günlük qazanclar',stats_avg:'Ort',
+    stats_trend:'Tendensiya (30g)',stats_daily:'Günlük evolyusiya',stats_avg:'Ort',
     stats_history:'Tarix',stats_no_data:'Statistika yoxdur',stats_empty:'Tarix yoxdur',
     stats_best:'Top oyun'
   },
   tr:{
     stats_title:'Istatistikler',stats_subtitle:'Günlük performans',stats_latest:'Son veriler',
     stats_players:'Oyuncular',stats_bets:'Bahisler',stats_winnings:'Kazançlar',stats_top_games:'Top oyunlar',
-    stats_trend:'Kazanç trendi (7g)',stats_daily_winnings:'Günlük kazançlar',stats_avg:'Ort',
+    stats_trend:'Trend (30g)',stats_daily:'Günlük evrim',stats_avg:'Ort',
     stats_history:'Gecmis',stats_no_data:'Istatistik mevcut degil',stats_empty:'Gecmis yok',
     stats_best:'Top oyun'
   },
   ar:{
     stats_title:'الإحصائيات',stats_subtitle:'الأداء اليومي',stats_latest:'أحدث البيانات',
     stats_players:'اللاعبون',stats_bets:'الرهانات',stats_winnings:'الأرباح',stats_top_games:'أفضل الألعاب',
-    stats_trend:'اتجاه الأرباح (7 أيام)',stats_daily_winnings:'الأرباح اليومية',stats_avg:'المتوسط',
-    stats_history:'السجل',stats_no_data:'لا توجد إحصائيات متاحة',stats_empty:'لا يوجد سجل',
+    stats_trend:'اتجاه (30 يوم)',stats_daily:'التطور اليومي',stats_avg:'المتوسط',
+    stats_history:'السجل',stats_no_data:'لا توجد إحصائيات',stats_empty:'لا يوجد سجل',
     stats_best:'أفضل لعبة'
   },
   ru:{
     stats_title:'Статистика',stats_subtitle:'Ежедневная производительность',stats_latest:'Последние данные',
     stats_players:'Игроки',stats_bets:'Ставки',stats_winnings:'Выигрыши',stats_top_games:'Топ игр',
-    stats_trend:'Тренд выигрышей (7д)',stats_daily_winnings:'Ежедневные выигрыши',stats_avg:'Ср',
+    stats_trend:'Тренд (30д)',stats_daily:'Ежедневная эволюция',stats_avg:'Ср',
     stats_history:'История',stats_no_data:'Статистика недоступна',stats_empty:'Нет истории',
     stats_best:'Топ игра'
   },
   pt:{
     stats_title:'Estatisticas',stats_subtitle:'Desempenho diario',stats_latest:'Ultimos dados',
     stats_players:'Jogadores',stats_bets:'Apostas',stats_winnings:'Ganhos',stats_top_games:'Top jogos',
-    stats_trend:'Tendencia de ganhos (7d)',stats_daily_winnings:'Ganhos diarios',stats_avg:'Med',
-    stats_history:'Historico',stats_no_data:'Sem estatisticas disponiveis',stats_empty:'Sem historico',
+    stats_trend:'Tendencia (30d)',stats_daily:'Evolucao diaria',stats_avg:'Med',
+    stats_history:'Historico',stats_no_data:'Sem estatisticas',stats_empty:'Sem historico',
     stats_best:'Top jogo'
   }
 };
@@ -331,7 +338,8 @@ function getLang(){
 
 function getGameImg(slug,imageUrl){if(imageUrl)return imageUrl;return GAME_IMAGES[slug]||DEFAULT_IMG}
 
-function fmt$(n){if(n>=1000)return'$'+(n/1000).toFixed(1)+'K';return'$'+n.toLocaleString()}
+function fmt$(n){if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+(n/1000).toFixed(1)+'K';return'$'+n.toLocaleString()}
+function fmtNum(n){if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toLocaleString()}
 
 function fmtDate(iso){
   var d;
@@ -345,6 +353,139 @@ function fmtDate(iso){
   var days={fr:frDays,en:enDays};
   var langDays=days[currentLang]||days.fr;
   return{day:d.getDate(),dayName:langDays[d.getDay()],month:months[d.getMonth()]};
+}
+
+// ─── LINE CHART (Canvas) ───
+function drawLineChart(data) {
+  var canvas = document.getElementById('lineChart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+
+  // Set canvas size for retina
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+
+  var W = rect.width;
+  var H = rect.height;
+  var pad = { top: 16, right: 12, bottom: 28, left: 46 };
+  var cw = W - pad.left - pad.right;
+  var ch = H - pad.top - pad.bottom;
+
+  // Reverse so oldest is first (left)
+  var chart = data.slice().reverse();
+
+  if (chart.length < 2) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(155,104,128,0.4)';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('...', W / 2, H / 2);
+    return;
+  }
+
+  // Compute max values
+  var maxBets = 1, maxWins = 1, maxPlayers = 1;
+  for (var i = 0; i < chart.length; i++) {
+    var b = Number(chart[i].total_bets) || 0;
+    var w = Number(chart[i].total_winnings) || 0;
+    var p = Number(chart[i].total_players) || 0;
+    if (b > maxBets) maxBets = b;
+    if (w > maxWins) maxWins = w;
+    if (p > maxPlayers) maxPlayers = p;
+  }
+  var maxY = Math.max(maxBets, maxWins) * 1.15;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(240,72,144,0.06)';
+  ctx.lineWidth = 1;
+  for (var g = 0; g <= 4; g++) {
+    var gy = pad.top + (ch / 4) * g;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, gy);
+    ctx.lineTo(W - pad.right, gy);
+    ctx.stroke();
+    // Y labels (bets/wins scale)
+    var yVal = maxY - (maxY / 4) * g;
+    ctx.fillStyle = 'rgba(155,104,128,0.5)';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(fmt$(Math.round(yVal)), pad.left - 6, gy + 3);
+  }
+
+  // X labels
+  ctx.textAlign = 'center';
+  var step = Math.max(1, Math.floor(chart.length / 6));
+  for (var xi = 0; xi < chart.length; xi += step) {
+    var xdate = fmtDate(chart[xi].stat_date);
+    var xpos = pad.left + (cw / (chart.length - 1)) * xi;
+    ctx.fillStyle = 'rgba(155,104,128,0.5)';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.fillText(xdate.day + ' ' + xdate.month, xpos, H - 6);
+  }
+  // Always show last label
+  var lastDate = fmtDate(chart[chart.length - 1].stat_date);
+  ctx.fillText(lastDate.day + ' ' + lastDate.month, W - pad.right, H - 6);
+
+  // Draw curves
+  function drawCurve(key, color, maxVal, fillAlpha) {
+    var pts = [];
+    for (var ci = 0; ci < chart.length; ci++) {
+      var val = Number(chart[ci][key]) || 0;
+      var x = pad.left + (cw / (chart.length - 1)) * ci;
+      var y = pad.top + ch - (val / maxVal) * ch;
+      pts.push({ x: x, y: y });
+    }
+
+    // Gradient fill
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (var si = 1; si < pts.length; si++) {
+      var cp1x = (pts[si - 1].x + pts[si].x) / 2;
+      ctx.bezierCurveTo(cp1x, pts[si - 1].y, cp1x, pts[si].y, pts[si].x, pts[si].y);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pad.top + ch);
+    ctx.lineTo(pts[0].x, pad.top + ch);
+    ctx.closePath();
+    var grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+    grad.addColorStop(0, color.replace(')', ',' + fillAlpha + ')').replace('rgb', 'rgba'));
+    grad.addColorStop(1, color.replace(')', ',0.02)').replace('rgb', 'rgba'));
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (var li = 1; li < pts.length; li++) {
+      var cpx = (pts[li - 1].x + pts[li].x) / 2;
+      ctx.bezierCurveTo(cpx, pts[li - 1].y, cpx, pts[li].y, pts[li].x, pts[li].y);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Dots (only if <= 15 points)
+    if (chart.length <= 15) {
+      for (var di = 0; di < pts.length; di++) {
+        ctx.beginPath();
+        ctx.arc(pts[di].x, pts[di].y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(pts[di].x, pts[di].y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+      }
+    }
+  }
+
+  // Draw: Bets (orange), Winnings (green)
+  drawCurve('total_bets', 'rgb(212,148,10)', maxY, 0.12);
+  drawCurve('total_winnings', 'rgb(26,154,106)', maxY, 0.12);
 }
 
 function render(data){
@@ -364,7 +505,7 @@ function render(data){
   document.getElementById('headerDate').textContent=fd.dayName+' '+fd.day+' '+fd.month;
 
   // Metrics
-  document.getElementById('mPlayers').textContent=Number(latest.total_players)||0;
+  document.getElementById('mPlayers').textContent=fmtNum(Number(latest.total_players)||0);
   document.getElementById('mBets').textContent=fmt$(Number(latest.total_bets)||0);
   document.getElementById('mWinnings').textContent=fmt$(Number(latest.total_winnings)||0);
 
@@ -393,27 +534,14 @@ function render(data){
     document.getElementById('top10Section').style.display='none';
   }
 
-  // Chart (last 7)
-  var chartData=data.history.slice(0,7).reverse();
-  var maxW=1;
-  for(var ci=0;ci<chartData.length;ci++){var w=Number(chartData[ci].total_winnings)||0;if(w>maxW)maxW=w}
-  var barsHtml='';
-  var sum=0;
-  for(var cj=0;cj<chartData.length;cj++){
-    var c=chartData[cj];
-    var cw=Number(c.total_winnings)||0;
-    var pct=(cw/maxW)*100;
-    var dd=fmtDate(c.stat_date);
-    sum+=cw;
-    barsHtml+='<div class="chart-bar-wrap"><div class="chart-bar'+(pct<5?' empty':'')+'" style="height:'+Math.max(pct,4)+'%"></div><span class="chart-bar-label">'+dd.day+'</span></div>';
-  }
-  document.getElementById('chartBars').innerHTML=barsHtml;
-  var avgVal=sum/chartData.length;
-  document.getElementById('chartAvg').textContent=t('stats_avg')+': '+fmt$(Math.round(avgVal));
+  // Line Chart (up to 30 days)
+  var chartData=data.history.slice(0,30);
+  document.getElementById('chartSection').style.display='';
+  drawLineChart(chartData);
 
   // History
   var histHtml='';
-  var histData=rest.slice(0,15);
+  var histData=rest.slice(0,20);
   for(var k=0;k<histData.length;k++){
     var h=histData[k];
     var hd=fmtDate(h.stat_date);
@@ -421,7 +549,7 @@ function render(data){
       '<div class="history-date-col"><div class="history-day">'+hd.day+'</div><div class="history-month">'+hd.month+'</div></div>'+
       '<div class="history-vals">'+
         '<div class="history-val"><div class="history-val-num">'+h.total_players+'</div><div class="history-val-lbl">'+t('stats_players')+'</div></div>'+
-        '<div class="history-val"><div class="history-val-num">'+fmt$(h.total_bets)+'</div><div class="history-val-lbl">'+t('stats_bets')+'</div></div>'+
+        '<div class="history-val"><div class="history-val-num o">'+fmt$(h.total_bets)+'</div><div class="history-val-lbl">'+t('stats_bets')+'</div></div>'+
         '<div class="history-val"><div class="history-val-num g">'+fmt$(h.total_winnings)+'</div><div class="history-val-lbl">'+t('stats_winnings')+'</div></div>'+
       '</div>'+
       (h.top_game_slug?'<img class="history-game" src="'+getGameImg(h.top_game_slug,h.top_game_image)+'" onerror="this.src=\''+DEFAULT_IMG+'\'" alt="">':'')+
@@ -434,12 +562,28 @@ function render(data){
 currentLang=getLang();
 applyTranslations();
 
-fetch(API,{cache:'no-store'})
-  .then(function(r){return r.json()})
-  .then(function(data){
-    if(data.success&&data.history){render(data)}else{render(null)}
-  })
-  .catch(function(){render(null)});
+// Fetch language from DB if we have userId
+var urlParams=new URLSearchParams(window.location.search);
+var uid=urlParams.get('uid')||urlParams.get('user_id')||'';
+async function fetchLang(){
+  if(!uid)return;
+  try{
+    var r=await fetch('/api/games?action=user_lang&user_id='+uid+'&_t='+Date.now(),{cache:'no-store'});
+    var d=await r.json();
+    if(d&&d.lang&&VALID_LANGS.indexOf(d.lang)!==-1){
+      currentLang=d.lang;
+      applyTranslations();
+    }
+  }catch(e){}
+}
+fetchLang().then(function(){
+  fetch(API,{cache:'no-store'})
+    .then(function(r){return r.json()})
+    .then(function(data){
+      if(data.success&&data.history){render(data)}else{render(null)}
+    })
+    .catch(function(){render(null)});
+});
 })();
 </script>
 </body>

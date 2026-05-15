@@ -507,7 +507,8 @@ module.exports = async function handler(req, res) {
 
         // ═══════════════════════════════════════════
         // GENERATE STATS (admin)
-        // Generates random stats for yesterday
+        // Generates stats for yesterday based on 20% of total users
+        // Each player: $20-$100 bet, random winnings (60%-180% of total bets)
         // ═══════════════════════════════════════════
         if (action === 'generate_stats') {
             // Get yesterday's date
@@ -515,23 +516,36 @@ module.exports = async function handler(req, res) {
             yesterday.setDate(yesterday.getDate() - 1);
             var dateStr = yesterday.toISOString().slice(0, 10);
 
-            // Check if already exists
+            // Check if already exists → delete and regenerate
             var existing = await query('SELECT id FROM daily_stats WHERE stat_date = $1', [dateStr]);
             if (existing.length > 0) {
+                await query('DELETE FROM daily_stats_games WHERE stat_id = $1', [existing[0].id]);
                 await query('DELETE FROM daily_stats WHERE stat_date = $1', [dateStr]);
             }
 
-            // Generate realistic random values (reduced ranges)
-            var totalPlayers = Math.floor(Math.random() * 13) + 3; // 3-15
-            var totalBets = Math.floor(Math.random() * 7501) + 500; // $500-$8,000
-            var totalWinnings = Math.floor(Math.random() * 14001) + 1000; // $1,000-$15,000
+            // Count ALL users (registered or not, deposited or not)
+            var userCountResult = await query('SELECT COUNT(*) as cnt FROM users');
+            var totalUsers = parseInt(userCountResult[0].cnt) || 0;
+
+            // 20% of total users are active players
+            var activePlayers = Math.max(1, Math.round(totalUsers * 0.2));
+
+            // Each player bets between $20 and $100
+            var totalBets = 0;
+            for (var bp = 0; bp < activePlayers; bp++) {
+                totalBets += Math.floor(Math.random() * 81) + 20; // $20-$100 per player
+            }
+
+            // Total winnings: 60% to 180% of total bets (realistic variance)
+            var winRate = 0.60 + Math.random() * 1.20; // 0.60 to 1.80
+            var totalWinnings = Math.round(totalBets * winRate);
 
             // Get random active games for top 10 (or fewer)
             var activeGames = await query('SELECT slug, name FROM games WHERE is_active = TRUE ORDER BY RANDOM()');
             var topCount = Math.min(activeGames.length, 10);
             var selectedGames = activeGames.slice(0, topCount);
 
-            // Shuffle sort order
+            // Shuffle
             for (var si = selectedGames.length - 1; si > 0; si--) {
                 var rj = Math.floor(Math.random() * (si + 1));
                 var tmp = selectedGames[si];
@@ -539,25 +553,43 @@ module.exports = async function handler(req, res) {
                 selectedGames[rj] = tmp;
             }
 
+            // Distribute players across top games proportionally
+            var gamePlayers = [];
+            var remainingPlayers = activePlayers;
+            for (var dgi = 0; dgi < selectedGames.length; dgi++) {
+                var isLast = dgi === selectedGames.length - 1;
+                var gp = isLast ? remainingPlayers : Math.max(1, Math.floor(Math.random() * (remainingPlayers / (selectedGames.length - dgi) * 1.5)));
+                if (!isLast) remainingPlayers -= gp;
+                gamePlayers.push(gp);
+            }
+
+            // Distribute winnings across games proportionally
+            var gameWinnings = [];
+            var remainingWinnings = totalWinnings;
+            for (var wgi = 0; wgi < selectedGames.length; wgi++) {
+                var wIsLast = wgi === selectedGames.length - 1;
+                var gw = wIsLast ? remainingWinnings : Math.max(50, Math.floor(Math.random() * (remainingWinnings / (selectedGames.length - wgi) * 1.5)));
+                if (!wIsLast) remainingWinnings -= gw;
+                gameWinnings.push(gw);
+            }
+
             var topGame = selectedGames.length > 0 ? selectedGames[0] : null;
-            var topGamePlayers = topGame ? Math.floor(Math.random() * 8) + 1 : 0; // 1-8
-            var topGameWinnings = topGame ? Math.floor(Math.random() * 1801) + 200 : 0; // $200-$2,000
+            var topGamePlayers = gamePlayers[0] || 0;
+            var topGameWinnings = gameWinnings[0] || 0;
 
             // Insert main stat
             var statResult = await query(
                 'INSERT INTO daily_stats (stat_date, total_players, total_bets, total_winnings, top_game_slug, top_game_name, top_game_players, top_game_winnings) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-                [dateStr, totalPlayers, totalBets, totalWinnings, topGame ? topGame.slug : null, topGame ? topGame.name : null, topGamePlayers, topGameWinnings]
+                [dateStr, activePlayers, totalBets, totalWinnings, topGame ? topGame.slug : null, topGame ? topGame.name : null, topGamePlayers, topGameWinnings]
             );
             var statId = statResult[0].id;
 
             // Insert top 10 games for this stat
             for (var gi = 0; gi < selectedGames.length; gi++) {
                 var g = selectedGames[gi];
-                var gPlayers = Math.floor(Math.random() * 8) + 1; // 1-8
-                var gWinnings = Math.floor(Math.random() * 1801) + 200; // $200-$2,000
                 await query(
                     'INSERT INTO daily_stats_games (stat_id, game_slug, game_name, players, winnings, sort_order) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (stat_id, game_slug) DO UPDATE SET players=$4, winnings=$5, sort_order=$6',
-                    [statId, g.slug, g.name, gPlayers, gWinnings, gi]
+                    [statId, g.slug, g.name, gamePlayers[gi], gameWinnings[gi], gi]
                 );
             }
 
@@ -565,9 +597,12 @@ module.exports = async function handler(req, res) {
                 success: true,
                 stat: {
                     date: dateStr,
-                    total_players: totalPlayers,
+                    total_users: totalUsers,
+                    active_players_pct: '20%',
+                    total_players: activePlayers,
                     total_bets: totalBets,
                     total_winnings: totalWinnings,
+                    win_rate: (winRate * 100).toFixed(0) + '%',
                     top_game: topGame ? topGame.name : null,
                     top_game_players: topGamePlayers,
                     top_game_winnings: topGameWinnings,
