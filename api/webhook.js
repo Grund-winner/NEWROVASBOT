@@ -807,19 +807,8 @@ async function handleText(chatId, from, text) {
     if (found.length === 0) {
         // ID not found - tell user to register with ROVAS promo code
         console.log('[HANDLE_TEXT] ID not found, sending notfound message');
-        try {
-            await tgAPI('sendMessage', {
-                chat_id: chatId,
-                text: t('already_registered_notfound', lang),
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t('btn_register_now', lang), url: regLink(userId) }],
-                        [{ text: t('btn_back', lang), callback_data: 'back' }]
-                    ]
-                }
-            });
-        } catch (e) { console.log('[HANDLE_TEXT] Error sending notfound:', e.message); }
+        await sendNew(chatId, userId, t('already_registered_notfound', lang),
+            [[{ text: t('btn_register_now', lang), url: regLink(userId) }], backButton(lang)]);
         return;
     }
     
@@ -861,53 +850,28 @@ async function handleText(chatId, from, text) {
     console.log('[HANDLE_TEXT] Updated user:', { is_registered: updated.is_registered, deposit: updated.deposit_amount });
     
     // Show result based on deposit status
-    try {
-        if (updated.is_registered && hasValidDeposit(updated)) {
-            // VIP access - all good
-            await tgAPI('sendMessage', {
-                chat_id: chatId,
-                text: t('already_registered_success', lang),
-                parse_mode: 'HTML',
-                reply_markup: { inline_keyboard: vipButtons(userId, lang) }
-            });
-        } else if (updated.is_registered) {
-            // Registered but need deposit
-            const dep = parseFloat(updated.deposit_amount) || 0;
-            let msg;
-            if (dep > 0 && dep < MIN_DEPOSIT) {
-                const remaining = (MIN_DEPOSIT - dep).toFixed(2);
-                const l = LANGS[lang] || LANGS.fr;
-                const local = Math.ceil(parseFloat(remaining) * l.rate);
-                msg = t('already_registered_success', lang) + '\n\n' +
-                    t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
-                    t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
-            } else {
-                msg = t('already_registered_success', lang) + '\n\n' + t('deposit', lang);
-            }
-            await tgAPI('sendMessage', {
-                chat_id: chatId, text: msg, parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t('btn_deposit', lang), url: depLink(userId) }],
-                        [{ text: t('btn_back', lang), callback_data: 'back' }]
-                    ]
-                }
-            });
+    if (updated.is_registered && hasValidDeposit(updated)) {
+        // VIP access - all good
+        await sendNew(chatId, userId, t('already_registered_success', lang), vipButtons(userId, lang));
+    } else if (updated.is_registered) {
+        // Registered but need deposit
+        const dep = parseFloat(updated.deposit_amount) || 0;
+        let msg;
+        if (dep > 0 && dep < MIN_DEPOSIT) {
+            const remaining = (MIN_DEPOSIT - dep).toFixed(2);
+            const l = LANGS[lang] || LANGS.fr;
+            const local = Math.ceil(parseFloat(remaining) * l.rate);
+            msg = t('already_registered_success', lang) + '\n\n' +
+                t('deposit_small', lang).replace('{amount}', dep.toFixed(2)) + '\n\n' +
+                t('missing', lang).replace('{remaining}', remaining).replace('{local}', local + ' ' + l.symbol);
         } else {
-            await tgAPI('sendMessage', {
-                chat_id: chatId,
-                text: t('register', lang),
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t('btn_register_now', lang), url: regLink(userId) }],
-                        [{ text: t('btn_back', lang), callback_data: 'back' }]
-                    ]
-                }
-            });
+            msg = t('already_registered_success', lang) + '\n\n' + t('deposit', lang);
         }
-    } catch (e) {
-        console.log('[HANDLE_TEXT] Error sending result:', e.message);
+        await sendNew(chatId, userId, msg,
+            [[{ text: t('btn_deposit', lang), url: depLink(userId) }], backButton(lang)]);
+    } else {
+        await sendNew(chatId, userId, t('register', lang),
+            [[{ text: t('btn_register_now', lang), url: regLink(userId) }], backButton(lang)]);
     }
 }
 
@@ -1053,22 +1017,9 @@ async function handleUpdate(update) {
                 } catch (e) {}
                 // Save temp state so handleText knows to process next text input
                 try { await setTempState(userId, 'already_registered'); } catch (e) {}
-                // Delete current message
+                // Delete current message + send new (1 seul message)
                 try { await deleteMsg(chatId, msgId); } catch (e) {}
-                // Send message asking for 1Win ID
-                const askText = t('already_registered', lang);
-                const askBtns = [{ text: t('btn_back', lang), callback_data: 'back' }];
-                let sent = false;
-                try {
-                    const res = await tgAPI('sendMessage', {
-                        chat_id: chatId, text: askText, parse_mode: 'HTML',
-                        reply_markup: { inline_keyboard: [askBtns] }
-                    });
-                    if (res && res.ok) {
-                        sent = true;
-                        await saveLastMsg(userId, res.result.message_id);
-                    }
-                } catch (e) {}
+                await sendNew(chatId, userId, t('already_registered', lang), [backButton(lang)]);
                 return;
             }
 
