@@ -80,7 +80,8 @@ module.exports = async function handler(req, res) {
 // Serve an HTML page that stores language in storage BEFORE navigating
 // This avoids WebView caching issues with 302 redirects
 function serveRedirect(res, targetPath, lang) {
-    const fullUrl = SITE_URL + targetPath + '&_t=' + Date.now();
+    const sep = targetPath.indexOf('?') !== -1 ? '&' : '?';
+    const fullUrl = SITE_URL + targetPath + sep + '_t=' + Date.now();
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
