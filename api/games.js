@@ -525,6 +525,9 @@ module.exports = async function handler(req, res) {
             yesterday.setDate(yesterday.getDate() - 1);
             var dateStr = yesterday.toISOString().slice(0, 10);
 
+            // ── RUN MIGRATIONS: ensure columns exist ──
+            await ensureColumns();
+
             // Check if already exists → delete and regenerate
             var existing = await query('SELECT id FROM daily_stats WHERE stat_date = $1', [dateStr]);
             if (existing.length > 0) {
