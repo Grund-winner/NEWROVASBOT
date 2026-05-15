@@ -1226,21 +1226,47 @@ var I18N = {
 // Valid languages
 var VALID_LANGS = ['fr','en','hi','uz','es','az','tr','ar','ru','pt'];
 
-function getLang() {
+function getLangFromURL() {
   var params = new URLSearchParams(window.location.search);
   var lang = params.get('lang') || '';
   if (VALID_LANGS.indexOf(lang) !== -1) {
-    // Valid lang from URL → save it for future visits
     try { localStorage.setItem('rovas_lang', lang); sessionStorage.setItem('rovas_lang', lang); } catch(e) {}
     return lang;
   }
-  // Try stored language
+  return '';
+}
+
+function getLangFromStorage() {
   try {
-    lang = sessionStorage.getItem('rovas_lang') || localStorage.getItem('rovas_lang') || '';
-  } catch(e) { lang = ''; }
-  if (VALID_LANGS.indexOf(lang) !== -1) return lang;
-  // Fallback: fr
+    var lang = sessionStorage.getItem('rovas_lang') || localStorage.getItem('rovas_lang') || '';
+    if (VALID_LANGS.indexOf(lang) !== -1) return lang;
+  } catch(e) {}
+  return '';
+}
+
+function getLang() {
+  // 1) URL param (fastest, from claim.js redirect)
+  var lang = getLangFromURL();
+  if (lang) return lang;
+  // 2) Stored language
+  lang = getLangFromStorage();
+  if (lang) return lang;
+  // 3) Fallback
   return 'fr';
+}
+
+// Fetch language from DB via API (bypasses claim.js caching issues)
+async function fetchLangFromDB(userId) {
+  if (!userId) return '';
+  try {
+    var res = await fetch('/api/games?action=user_lang&user_id=' + userId + '&_t=' + Date.now(), { cache: 'no-store' });
+    var data = await res.json();
+    if (data && data.lang && VALID_LANGS.indexOf(data.lang) !== -1) {
+      console.log('[LANG] Got lang from DB:', data.lang);
+      return data.lang;
+    }
+  } catch(e) { console.log('[LANG] DB fetch failed:', e); }
+  return '';
 }
 
 function t(key) {
@@ -1689,8 +1715,27 @@ function toggleInfoPanel(type) {
   // Set language
   currentLang = getLang();
 
-  // Apply translations
+  // Apply translations (immediate, from URL/storage)
   applyTranslations();
+
+  // Also fetch language from DB to ensure correctness (async, bypasses claim.js cache)
+  var userId = getUserId();
+  if (userId) {
+    fetchLangFromDB(userId).then(function(dbLang) {
+      if (dbLang && dbLang !== currentLang) {
+        console.log('[LANG] Language changed from', currentLang, 'to', dbLang);
+        currentLang = dbLang;
+        try { sessionStorage.setItem('rovas_lang', dbLang); localStorage.setItem('rovas_lang', dbLang); } catch(e) {}
+        applyTranslations();
+        // Update hero subtitle with correct language
+        if (window._allGames && window._allGames.length > 0) {
+          var gWord = window._allGames.length > 1 ? t('hero_games_pl') : t('hero_games');
+          document.getElementById('heroSubtitle').textContent = window._allGames.length + ' ' + gWord + ' \u00B7 ' + t('hero_after');
+          document.getElementById('searchInput').placeholder = t('search_placeholder');
+        }
+      }
+    });
+  }
 
   // Floating numbers & game icons (SVGs, no emojis)
   var coinsEl = document.getElementById('coins');

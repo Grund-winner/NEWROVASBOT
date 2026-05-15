@@ -274,6 +274,22 @@ module.exports = async function handler(req, res) {
         }
     }
 
+    // ─── User language endpoint (for index.html to fetch correct lang) ───
+    if (req.method === 'GET' && req.query.action === 'user_lang') {
+        try {
+            var userId2 = req.query.user_id ? parseInt(req.query.user_id) : null;
+            if (!userId2) return res.status(200).json({ lang: '' });
+            var users = await query('SELECT language FROM users WHERE telegram_id = $1', [userId2]);
+            var userLang2 = (users.length > 0 && users[0].language) ? users[0].language : '';
+            console.log('[USER_LANG] uid=' + userId2 + ' lang=' + userLang2);
+            res.setHeader('Cache-Control', 'no-store, no-cache');
+            return res.status(200).json({ lang: userLang2 });
+        } catch (e) {
+            console.error('[USER_LANG ERROR]', e);
+            return res.status(200).json({ lang: '' });
+        }
+    }
+
     // ═══════════════════════════════════════════
     // PUBLIC STATS (no auth required)
     // ═══════════════════════════════════════════
