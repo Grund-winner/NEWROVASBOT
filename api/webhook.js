@@ -8,7 +8,7 @@ const { query } = require('../lib/db');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const REG_LINK = process.env.REG_LINK || 'https://one-vv343.com/casino?p=ufjv';
-const BASE_URL = process.env.BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://newrovasbot.vercel.app');
+const BASE_URL = 'https://newrovasbot.vercel.app';
 const PRODUCTION_URL = 'https://newrovasbot.vercel.app';
 const MIN_DEPOSIT = parseFloat(process.env.MIN_DEPOSIT) || 5;
 const PROMO = process.env.PROMO_CODE || 'ROVAS';

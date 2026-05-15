@@ -19,12 +19,13 @@ function htmlRedirect(url) {
 module.exports = async function handler(req, res) {
     try {
         const token = req.query.token;
-        const BASE = process.env.PREDICTION_URL || '';
+        // Always use relative paths - claim.js runs on Vercel, so redirect stays on Vercel
+        // No external PREDICTION_URL needed
 
         // No token → redirect to games without uid (public view)
         if (!token) {
             res.setHeader('Content-Type', 'text/html');
-            return res.status(200).send(htmlRedirect(`${BASE}/jeux/index.html`));
+            return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
         let decoded;
@@ -32,13 +33,13 @@ module.exports = async function handler(req, res) {
             decoded = Buffer.from(token, 'base64url').toString('utf8');
         } catch (e) {
             res.setHeader('Content-Type', 'text/html');
-            return res.status(200).send(htmlRedirect(`${BASE}/jeux/index.html`));
+            return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
         const parts = decoded.split(':');
         if (parts.length !== 3) {
             res.setHeader('Content-Type', 'text/html');
-            return res.status(200).send(htmlRedirect(`${BASE}/jeux/index.html`));
+            return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
         const [telegramId, expiresAt, sig] = parts;
@@ -52,7 +53,7 @@ module.exports = async function handler(req, res) {
         if (sig !== expectedSig) {
             console.warn('[CLAIM] Invalid token for user', telegramId);
             res.setHeader('Content-Type', 'text/html');
-            return res.status(200).send(htmlRedirect(`${BASE}/jeux/index.html`));
+            return res.status(200).send(htmlRedirect('/jeux/index.html'));
         }
 
         // Token valid → get user info and redirect to games
@@ -64,7 +65,7 @@ module.exports = async function handler(req, res) {
             console.warn('[CLAIM] DB lookup failed:', e.message);
         }
 
-        const predTarget = `${BASE}/jeux/index.html?uid=${telegramId}&lang=${userLang}`;
+        const predTarget = `/jeux/index.html?uid=${telegramId}&lang=${userLang}`;
         console.log('[CLAIM] Redirecting user', telegramId, 'to games');
         res.setHeader('Content-Type', 'text/html');
         return res.status(200).send(htmlRedirect(predTarget));

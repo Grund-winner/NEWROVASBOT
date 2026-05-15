@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════
 const { query } = require('../lib/db');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'rovasadmin2024';
-const BASE_URL = process.env.BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://newrovasbot.vercel.app');
+const BASE_URL = 'https://newrovasbot.vercel.app';
 
 // Ensure unlock columns exist
 async function ensureColumns() {
