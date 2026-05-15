@@ -713,29 +713,21 @@ async function showChannelRequired(chatId, userId, lang, msgId) {
 async function showMainMenu(chatId, userId, lang, msgId) {
     const caption = t('menu_text', lang);
     const btns = simpleMenuButtons(lang);
-    // Primary: edit the message in-place (most reliable, no delete race condition)
-    if (msgId) {
-        try {
-            const res = await tgAPI('editMessageText', {
-                chat_id: chatId, message_id: msgId,
-                text: caption, parse_mode: 'HTML',
-                reply_markup: { inline_keyboard: btns }
-            });
-            if (res.ok) {
-                if (userId) await saveLastMsg(userId, msgId);
-                return;
-            }
-            console.log('[MENU] editMessageText failed:', res.description);
-        } catch (e) {
-            console.error('[MENU EDIT ERROR]', e.message);
-        }
-    }
-    // Fallback: delete old message and send new text-only message
+    // Delete previous message
     if (msgId) await deleteMsg(chatId, msgId);
+    // Send menu with photo (defautmenu)
+    try {
+        const result = await sendNew(chatId, userId, caption, btns, 'default');
+        if (result && result.ok) return;
+        console.log('[MENU] Photo send failed, falling back to text');
+    } catch (e) {
+        console.error('[MENU PHOTO ERROR]', e.message);
+    }
+    // Fallback: text-only
     try {
         await sendNew(chatId, userId, caption, btns);
     } catch (e) {
-        console.error('[MENU FALLBACK ERROR]', e.message);
+        console.error('[MENU TEXT FALLBACK ERROR]', e.message);
     }
 }
 
@@ -947,7 +939,7 @@ async function handleUpdate(update) {
             if (data === 'instructions') {
                 await tgAPI('answerCallbackQuery', { callback_query_id: q.id });
                 await deleteMsg(chatId, msgId);
-                await sendNew(chatId, userId, t('instructions', lang), [backButton(lang)]);
+                await sendNew(chatId, userId, t('instructions', lang), [backButton(lang)], 'instructions');
                 return;
             }
 
