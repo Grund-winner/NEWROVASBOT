@@ -152,7 +152,7 @@ module.exports = async function handler(req, res) {
             if (existing.length > 0) {
                 const user = existing[0];
                 total = parseFloat(user.deposit_amount || 0) + amount;
-                wasAlreadyVIP = user.is_deposited && total >= MIN_DEPOSIT;
+                wasAlreadyVIP = user.is_deposited && total >= MIN_DEPOSIT && user.deposited_at !== null;
                 userLang = user.language || 'fr';
                 lastMsgId = user.last_message_id;
                 const ok = total >= MIN_DEPOSIT;
@@ -172,7 +172,7 @@ module.exports = async function handler(req, res) {
             if (existing.length > 0) {
                 telegramId = existing[0].telegram_id;
                 total = parseFloat(existing[0].deposit_amount || 0) + amount;
-                wasAlreadyVIP = existing[0].is_deposited && total >= MIN_DEPOSIT;
+                wasAlreadyVIP = existing[0].is_deposited && total >= MIN_DEPOSIT && existing[0].deposited_at !== null;
                 userLang = existing[0].language || 'fr';
                 lastMsgId = existing[0].last_message_id;
                 const ok = total >= MIN_DEPOSIT;

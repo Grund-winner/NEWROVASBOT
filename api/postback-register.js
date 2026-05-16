@@ -141,6 +141,10 @@ module.exports = async function handler(req, res) {
                 wasAlreadyRegistered = existing[0].is_registered;
                 userLang = existing[0].language || 'fr';
                 lastMsgId = existing[0].last_message_id;
+                // If different 1win account OR first postback ever → treat as new registration
+                if (!existing[0].one_win_user_id || existing[0].one_win_user_id !== userId1win) {
+                    wasAlreadyRegistered = false;
+                }
                 await query(
                     'UPDATE users SET is_registered = TRUE, one_win_user_id = $1, registered_at = NOW(), updated_at = NOW() WHERE telegram_id = $2',
                     [userId1win, clickid]
